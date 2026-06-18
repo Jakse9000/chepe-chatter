@@ -44,7 +44,10 @@ SPORTS_KEYWORDS = [
     "fútbol", "futbol", "football", "soccer",
     "saprissa", "alajuelense", "herediano", "cartaginés", "cartagines",
     "liga deportiva", "la sele", "selección nacional", "seleccion nacional",
-    "eliminatoria", "eliminatorias", "mundial",
+    "eliminatoria", "eliminatorias",
+    # "mundial" alone is ambiguous (also means "world/global"), so require
+    # a football context instead:
+    "mundial 2026", "copa mundial", "copa del mundo", "world cup", "fifa",
     "gol", "goles", "goleador", "torneo", "torneos",
     "deporte", "deportes", "deportivo", "deportiva", "deportivos", "deportivas",
     "surf", "surfing", "surfista", "maratón", "maraton", "marathon",
