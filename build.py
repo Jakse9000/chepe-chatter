@@ -26,6 +26,7 @@ from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 import classify
 import translate as T
+import events as EV
 
 ROOT = Path(__file__).parent
 OUT = ROOT / "site"
@@ -179,7 +180,16 @@ def main():
             "cards": buckets[sid],
         })
 
-    events = build_events(cfg.get("events", []), cfg.get("events_fallback_link", "#"))
+    # Try to collect live cultural events; fall back to the manual list.
+    print("Collecting cultural events…")
+    collected = EV.collect_events(cfg["site"].get("max_events", 8))
+    if collected:
+        print(f"  got {len(collected)} live events from GAM Cultural")
+        raw_events = collected
+    else:
+        print("  using manual events from feeds.yaml")
+        raw_events = cfg.get("events", [])
+    events = build_events(raw_events, cfg.get("events_fallback_link", "#"))
     T.flush()
 
     env = Environment(

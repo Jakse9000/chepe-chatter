@@ -17,6 +17,7 @@ says exactly what to click. Take your time — nothing here can break anything.
 | `feeds.yaml` | **The only file you'll normally edit.** Your list of news sources and events. |
 | `build.py` | The program that builds the site. You run it; you don't edit it. |
 | `classify.py` | The rules that decide "is this relevant to foreigners?" Edit later to fine-tune. |
+| `events.py` | Collects upcoming cultural events automatically from GAM Cultural. |
 | `translate.py` | The translator. Free now; ready for DeepL later. |
 | `templates/index.html` | The page design (your approved prototype). |
 | `.github/workflows/build.yml` | The "robot" that rebuilds the site hourly on GitHub. |
@@ -111,8 +112,10 @@ You don't need this to go live, but it's handy to preview changes before publish
 `name`, `url`, `lang`, and `stream`. Save. Commit & push in GitHub Desktop (or just edit
 the file directly on github.com and click "Commit changes"). The site updates within the hour.
 
-**Add a cultural event:** add a block under `events:` in `feeds.yaml`. Write it in Spanish;
-it gets translated automatically.
+**Cultural events:** these are now collected **automatically** from GAM Cultural
+(`events.py`) on every build — upcoming events, translated and linked, with no work
+from you. The `events:` list in `feeds.yaml` is only a fallback used if that source is
+ever unreachable. Change how many show with `max_events` in `feeds.yaml`.
 
 **A source stopped showing up?** Its feed URL probably changed. The build skips broken
 feeds automatically (the site never breaks), so just find the new feed address and update it.

@@ -23,6 +23,7 @@ site:
   tagline_en: "Costa Rica news & culture, for newcomers"
   tagline_es: "Noticias y cultura de Costa Rica, para recién llegados"
   max_items_per_stream: 9
+  max_events: 8             # how many upcoming cultural events to show
   translate_hidden: true    # translate everything we show, so items still
                             # read in English when the filter is turned off
 
@@ -69,12 +70,12 @@ feeds:
     stream: "local"
 
 # -------- Cultural events --------
-# Cultural agendas rarely publish clean RSS, so for now events are
-# curated here and auto-translated on each build. Add or remove freely.
-# Dates use day/month so they display on the calendar tiles.
+# Events are now collected AUTOMATICALLY from GAM Cultural on every build
+# (see events.py). The list below is only a FALLBACK, used if that source
+# is ever unreachable — so the calendar is never empty. You can edit it,
+# but normally you won't need to touch it.
 #
-# Add a `link:` to each event so readers can click through for more info.
-# If you leave it out, the card links to the GAM Cultural agenda below.
+# `events_fallback_link` is used for any event that has no link of its own.
 events_fallback_link: "https://www.gamcultural.com/cr"
 events:
   - day: "21"
