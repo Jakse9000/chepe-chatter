@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ site.name }} — Costa Rica news for newcomers</title>
+<style>
+  :root{
+    --green:#0a7d52; --green-dark:#075c3c; --sun:#f5b301; --sea:#1481ba;
+    --ink:#1c2b27; --muted:#5e6e68; --line:#e3e9e6; --bg:#f6f8f7; --card:#ffffff;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    color:var(--ink);background:var(--bg);line-height:1.5}
+  a{color:inherit}
+  header{background:linear-gradient(120deg,var(--green-dark),var(--green));color:#fff;padding:18px 20px 0}
+  .bar{max-width:1080px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+  .brand{display:flex;align-items:center;gap:12px}
+  .logo{width:40px;height:40px;border-radius:50%;background:var(--sun);display:flex;align-items:center;justify-content:center;font-size:22px}
+  .brand h1{font-size:21px;letter-spacing:.3px}
+  .brand p{font-size:12px;opacity:.85;margin-top:1px}
+  .toggle{display:flex;background:rgba(255,255,255,.15);border-radius:999px;padding:3px;font-size:13px;font-weight:600}
+  .toggle button{border:0;background:transparent;color:#fff;padding:6px 14px;border-radius:999px;cursor:pointer;opacity:.7}
+  .toggle button.active{background:#fff;color:var(--green-dark);opacity:1}
+  .relfilter{display:flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;background:rgba(255,255,255,.13);padding:7px 12px;border-radius:999px;cursor:pointer}
+  .relfilter input{accent-color:var(--sun);cursor:pointer}
+  nav{max-width:1080px;margin:14px auto 0;display:flex;gap:6px;flex-wrap:wrap}
+  nav a{padding:10px 14px;font-size:14px;font-weight:600;border-radius:8px 8px 0 0;text-decoration:none;opacity:.8}
+  nav a:hover{opacity:1;background:rgba(255,255,255,.12)}
+  main{max-width:1080px;margin:0 auto;padding:26px 20px 60px}
+  .section-head{display:flex;align-items:baseline;gap:10px;margin:30px 0 14px}
+  .section-head h2{font-size:20px;color:var(--green-dark)}
+  .section-head .dot{width:8px;height:8px;border-radius:50%;background:var(--sun)}
+  .section-head small{color:var(--muted);font-size:13px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;transition:.15s}
+  .card:hover{box-shadow:0 6px 20px rgba(10,125,82,.10);transform:translateY(-2px)}
+  .card .meta{display:flex;justify-content:space-between;align-items:center;padding:12px 14px 0;font-size:12px;color:var(--muted)}
+  .tag{font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:.5px}
+  .card h3{padding:8px 14px 4px;font-size:16px;line-height:1.35}
+  .card h3 a{text-decoration:none}
+  .card p{padding:0 14px;font-size:14px;color:var(--muted)}
+  .card .foot{padding:12px 14px 14px;margin-top:auto;font-size:12.5px;color:var(--muted);display:flex;justify-content:space-between;align-items:center}
+  .card .foot a{color:var(--sea);font-weight:600;text-decoration:none}
+  .lang-badge{font-size:11px;border:1px solid var(--line);border-radius:5px;padding:1px 6px;color:var(--muted)}
+  .event{display:flex;gap:14px;align-items:flex-start;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px}
+  .event .date{flex:0 0 56px;text-align:center;background:var(--green);color:#fff;border-radius:8px;padding:8px 4px}
+  .event .date .d{font-size:20px;font-weight:700;line-height:1}
+  .event .date .m{font-size:11px;text-transform:uppercase;opacity:.9}
+  .event h3{font-size:15px;margin-bottom:3px}
+  .event p{font-size:13px;color:var(--muted)}
+  .event .where{font-size:12px;color:var(--sea);margin-top:4px;font-weight:600}
+  .sponsor{background:#fffdf3;border:1px dashed var(--sun);border-radius:12px;padding:14px 16px;font-size:13px;color:var(--muted);display:flex;align-items:center;gap:10px;margin-top:8px}
+  .sponsor .pill{font-size:10px;background:var(--sun);color:#5a4500;font-weight:700;padding:2px 7px;border-radius:999px;text-transform:uppercase}
+  footer{background:var(--green-dark);color:#cfe7dc;font-size:13px;text-align:center;padding:26px 20px}
+  .note{max-width:1080px;margin:0 auto 6px;font-size:12px;color:var(--muted);background:#eef4f1;border-radius:8px;padding:8px 12px}
+  .sources{max-width:1080px;margin:0 auto 4px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:4px 0}
+  .sources span{font-size:11.5px;color:var(--muted);background:#fff;border:1px solid var(--line);border-radius:999px;padding:3px 9px}
+  .sources .srclabel{background:transparent;border:0;font-weight:700;color:var(--green-dark);padding-left:0}
+  .empty{color:var(--muted);font-size:14px;padding:6px 2px}
+  .hide{display:none}
+</style>
+</head>
+<body>
+<header>
+  <div class="bar">
+    <div class="brand">
+      <div class="logo">🌴</div>
+      <div>
+        <h1>{{ site.name }}</h1>
+        <p data-en="{{ site.tagline_en }}" data-es="{{ site.tagline_es }}">{{ site.tagline_en }}</p>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+      <label class="relfilter"><input type="checkbox" id="relToggle" checked onchange="applyFilter()">
+        <span data-en="Only what matters to foreigners" data-es="Solo lo relevante para extranjeros">Only what matters to foreigners</span></label>
+      <div class="toggle" role="group" aria-label="Language">
+        <button id="btn-en" class="active" onclick="setLang('en')">English</button>
+        <button id="btn-es" onclick="setLang('es')">Español</button>
+      </div>
+    </div>
+  </div>
+  <nav>
+    {% for s in streams %}<a href="#{{ s.id }}" data-en="{{ s.icon }} {{ s.title_en }}" data-es="{{ s.icon }} {{ s.title_es }}">{{ s.icon }} {{ s.title_en }}</a>
+    {% endfor %}<a href="#events" data-en="🎭 What's on" data-es="🎭 Agenda cultural">🎭 What's on</a>
+  </nav>
+</header>
+
+<main>
+  <div class="note" data-en="The site reads every source below, but only surfaces and translates items relevant to foreigners living here. Untick the filter to see everything; use the language toggle to translate the page. Updated {{ generated }}." data-es="El sitio lee todas las fuentes de abajo, pero solo muestra y traduce lo relevante para extranjeros que viven aquí. Desmarca el filtro para ver todo; usa el botón de idioma para traducir la página. Actualizado {{ generated }}."></div>
+
+  <div class="sources">
+    <span class="srclabel" data-en="Aggregating:" data-es="Agregando:">Aggregating:</span>
+    {% for src in sources %}<span>{{ src }}</span>{% endfor %}
+  </div>
+
+  {% for s in streams %}
+  <div class="section-head" id="{{ s.id }}">
+    <span class="dot"></span>
+    <h2 data-en="{{ s.title_en }}" data-es="{{ s.title_es }}">{{ s.title_en }}</h2>
+    <small data-en="{{ s.subtitle_en }}" data-es="{{ s.subtitle_es }}">{{ s.subtitle_en }}</small>
+  </div>
+  {% if s.cards %}
+  <div class="grid">
+    {% for it in s.cards %}
+    <article class="card" data-rel="{{ 'yes' if it.relevant else 'no' }}">
+      <div class="meta"><span class="tag">{{ it.source }}</span><span>{{ it.age }}</span></div>
+      <h3><a href="{{ it.url }}" target="_blank" rel="noopener" data-en="{{ it.title_en }}" data-es="{{ it.title_es }}">{{ it.title_en }}</a></h3>
+      <p data-en="{{ it.summary_en }}" data-es="{{ it.summary_es }}">{{ it.summary_en }}</p>
+      <div class="foot">
+        <span class="lang-badge" data-en="{{ 'EN original' if it.origin == 'en' else 'Translated from ES' }}" data-es="{{ 'Traducido del inglés' if it.origin == 'en' else 'Original en ES' }}">{{ 'EN original' if it.origin == 'en' else 'Translated from ES' }}</span>
+        <a href="{{ it.url }}" target="_blank" rel="noopener" data-en="Read at source →" data-es="Leer en la fuente →">Read at source →</a>
+      </div>
+    </article>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty" data-en="No stories right now — check back after the next update." data-es="No hay notas por ahora — vuelve tras la próxima actualización."></div>
+  {% endif %}
+
+  {% if s.id == 'living' %}
+  <div class="sponsor">
+    <span class="pill" data-en="Supported by" data-es="Con apoyo de">Supported by</span>
+    <span data-en="Your sponsor here — a tasteful, non-intrusive slot for a relocation, banking or insurance partner." data-es="Tu patrocinador aquí — un espacio discreto y de buen gusto para un socio de reubicación, banca o seguros."></span>
+  </div>
+  {% endif %}
+  {% endfor %}
+
+  <div class="section-head" id="events">
+    <span class="dot"></span>
+    <h2 data-en="What's on" data-es="Agenda cultural">What's on</h2>
+    <small data-en="Cultural events of every kind" data-es="Eventos culturales de todo tipo">Cultural events of every kind</small>
+  </div>
+  <div class="grid">
+    {% for ev in events %}
+    <div class="event">
+      <div class="date"><div class="d">{{ ev.day }}</div><div class="m">{{ ev.month }}</div></div>
+      <div>
+        <h3 data-en="{{ ev.title_en }}" data-es="{{ ev.title_es }}">{{ ev.title_en }}</h3>
+        <p data-en="{{ ev.desc_en }}" data-es="{{ ev.desc_es }}">{{ ev.desc_en }}</p>
+        <div class="where">📍 {{ ev.where }}</div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</main>
+
+<footer>
+  <p data-en="{{ site.name }} · {{ site.domain }} · Headlines & summaries link back to original sources." data-es="{{ site.name }} · {{ site.domain }} · Los titulares y resúmenes enlazan a las fuentes originales.">{{ site.name }} · {{ site.domain }}</p>
+</footer>
+
+<script>
+  function setLang(lang){
+    document.documentElement.lang = lang;
+    document.getElementById('btn-en').classList.toggle('active', lang==='en');
+    document.getElementById('btn-es').classList.toggle('active', lang==='es');
+    document.querySelectorAll('[data-en]').forEach(function(el){
+      var val = el.getAttribute('data-'+lang);
+      if(val!=null) el.innerHTML = val;
+    });
+  }
+  function applyFilter(){
+    var only = document.getElementById('relToggle').checked;
+    document.querySelectorAll('[data-rel]').forEach(function(el){
+      el.classList.toggle('hide', only && el.getAttribute('data-rel')==='no');
+    });
+  }
+  setLang('en');
+  applyFilter();
+</script>
+</body>
+</html>

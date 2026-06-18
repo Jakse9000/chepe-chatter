@@ -1,0 +1,94 @@
+# =============================================================
+# Chepe Chatter — source configuration
+# Edit this file to add/remove sources. No coding needed.
+# After editing, the next build picks up your changes.
+#
+# Each feed has:
+#   name:   how it appears on the site
+#   url:    the RSS/Atom feed address
+#   lang:   "es" or "en"  (the language the feed is written in)
+#   stream: where its stories go by default —
+#             world  = Costa Rica in the world (international)
+#             local  = Living here / Sports (auto-sorted by keywords)
+#   trust:  optional. If true, items are always shown even if the
+#           relevance filter can't find foreigner keywords.
+#
+# NOTE: feed URLs occasionally change. If one stops working the
+# build just skips it and logs a warning — the site still updates.
+# =============================================================
+
+site:
+  name: "Chepe Chatter"
+  domain: "chepe-chatter.news"
+  tagline_en: "Costa Rica news & culture, for newcomers"
+  tagline_es: "Noticias y cultura de Costa Rica, para recién llegados"
+  max_items_per_stream: 9
+  translate_hidden: false   # don't waste translation on filtered-out items
+
+feeds:
+  # ---- International coverage ABOUT Costa Rica (English) ----
+  - name: "Google News — Costa Rica"
+    url: "https://news.google.com/rss/search?q=%22Costa+Rica%22&hl=en-US&gl=US&ceid=US:en"
+    lang: "en"
+    stream: "world"
+    trust: true
+
+  # ---- English-language, already aimed at foreigners ----
+  - name: "Q Costa Rica"
+    url: "https://qcostarica.com/feed/"
+    lang: "en"
+    stream: "local"
+    trust: true
+
+  - name: "The Tico Times"
+    url: "https://ticotimes.net/feed"
+    lang: "en"
+    stream: "local"
+    trust: true
+
+  # ---- Spanish-language local outlets ----
+  - name: "Delfino.cr"
+    url: "https://delfino.cr/feed"
+    lang: "es"
+    stream: "local"
+
+  - name: "La Nación"
+    url: "https://www.nacion.com/arc/outboundfeeds/rss/?outputType=xml"
+    lang: "es"
+    stream: "local"
+
+  - name: "La Teja"
+    url: "https://www.lateja.cr/arc/outboundfeeds/rss/?outputType=xml"
+    lang: "es"
+    stream: "local"
+
+  - name: "El Mundo CR"
+    url: "https://www.elmundo.cr/feed/"
+    lang: "es"
+    stream: "local"
+
+# -------- Cultural events --------
+# Cultural agendas rarely publish clean RSS, so for now events are
+# curated here and auto-translated on each build. Add or remove freely.
+# Dates use day/month so they display on the calendar tiles.
+events:
+  - day: "21"
+    month: "Jun"
+    title: "Festival de artes urbanas Transitarte"
+    desc: "Música, danza y arte en vivo en los parques del centro. Entrada gratuita, todo público."
+    where: "San José · Parque España"
+  - day: "27"
+    month: "Jun"
+    title: "506 Jazz Fest — noche de apertura"
+    desc: "Agrupaciones de jazz nacionales e internacionales abren la semana del festival."
+    where: "Teatro Nacional"
+  - day: "05"
+    month: "Jul"
+    title: "Feria Verde, mercado orgánico"
+    desc: "Mercado de los sábados con productos locales, café y artesanías — favorito de los recién llegados."
+    where: "Aranjuez, San José"
+  - day: "18"
+    month: "Jul"
+    title: "Inauguración de arte contemporáneo — Museo MADC"
+    desc: "Nueva exposición de artistas centroamericanos."
+    where: "Museo de Arte y Diseño Contemporáneo"

@@ -1,0 +1,10 @@
+# Local Python install used only for offline testing — never commit
+.libs/
+__pycache__/
+*.pyc
+
+# Generated output (GitHub builds this fresh every run)
+site/
+
+# Translation cache is handled by GitHub's cache, not the repo
+.translation_cache.json
