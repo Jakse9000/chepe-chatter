@@ -127,7 +127,7 @@ def translate_item(it, cfg):
     return it
 
 
-def build_events(events):
+def build_events(events, fallback_link):
     out = []
     for ev in events or []:
         title_es = ev.get("title", "")
@@ -135,6 +135,7 @@ def build_events(events):
         out.append({
             "day": ev.get("day", ""), "month": ev.get("month", ""),
             "where": ev.get("where", ""),
+            "link": ev.get("link") or fallback_link,
             "title_es": title_es, "desc_es": desc_es,
             "title_en": T.translate(title_es, "es", "en"),
             "desc_en": T.translate(desc_es, "es", "en"),
@@ -178,7 +179,7 @@ def main():
             "cards": buckets[sid],
         })
 
-    events = build_events(cfg.get("events", []))
+    events = build_events(cfg.get("events", []), cfg.get("events_fallback_link", "#"))
     T.flush()
 
     env = Environment(

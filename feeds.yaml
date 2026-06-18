@@ -71,24 +71,32 @@ feeds:
 # Cultural agendas rarely publish clean RSS, so for now events are
 # curated here and auto-translated on each build. Add or remove freely.
 # Dates use day/month so they display on the calendar tiles.
+#
+# Add a `link:` to each event so readers can click through for more info.
+# If you leave it out, the card links to the GAM Cultural agenda below.
+events_fallback_link: "https://www.gamcultural.com/cr"
 events:
   - day: "21"
     month: "Jun"
     title: "Festival de artes urbanas Transitarte"
     desc: "Música, danza y arte en vivo en los parques del centro. Entrada gratuita, todo público."
     where: "San José · Parque España"
+    link: "https://www.gamcultural.com/cr/san-jose"
   - day: "27"
     month: "Jun"
     title: "506 Jazz Fest — noche de apertura"
     desc: "Agrupaciones de jazz nacionales e internacionales abren la semana del festival."
     where: "Teatro Nacional"
+    link: "https://www.teatronacional.go.cr/"
   - day: "05"
     month: "Jul"
     title: "Feria Verde, mercado orgánico"
     desc: "Mercado de los sábados con productos locales, café y artesanías — favorito de los recién llegados."
     where: "Aranjuez, San José"
+    link: "https://feriaverde.org/"
   - day: "18"
     month: "Jul"
     title: "Inauguración de arte contemporáneo — Museo MADC"
     desc: "Nueva exposición de artistas centroamericanos."
     where: "Museo de Arte y Diseño Contemporáneo"
+    link: "https://www.madc.cr/"
