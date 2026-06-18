@@ -23,7 +23,8 @@ site:
   tagline_en: "Costa Rica news & culture, for newcomers"
   tagline_es: "Noticias y cultura de Costa Rica, para recién llegados"
   max_items_per_stream: 9
-  translate_hidden: false   # don't waste translation on filtered-out items
+  translate_hidden: true    # translate everything we show, so items still
+                            # read in English when the filter is turned off
 
 feeds:
   # ---- International coverage ABOUT Costa Rica (English) ----
