@@ -24,6 +24,11 @@ site:
   tagline_es: "Noticias y cultura de Costa Rica, para recién llegados"
   max_items_per_stream: 9
   max_events: 8             # how many upcoming cultural events to show
+  max_traffic: 6            # how many road-closure items to show
+  # Live-traffic buttons (centred on the Central Valley / San José).
+  # Change the coordinates to re-centre the maps on another region.
+  traffic_map_google: "https://www.google.com/maps/@9.9281,-84.0907,11z/data=!5m1!1e1"
+  traffic_map_waze: "https://www.waze.com/live-map?to=ll.9.9281%2C-84.0907"
   translate_hidden: true    # translate everything we show, so items still
                             # read in English when the filter is turned off
 
@@ -68,6 +73,13 @@ feeds:
     url: "https://www.elmundo.cr/feed/"
     lang: "es"
     stream: "local"
+
+  # ---- Road closures (auto-search of the news for cierres viales) ----
+  - name: "Cierres viales"
+    url: "https://news.google.com/rss/search?q=%28%22cierre+de+v%C3%ADas%22+OR+%22cierres+viales%22+OR+%22paso+restringido%22+OR+%22cierre+de+carriles%22%29+Costa+Rica&hl=es-419&gl=CR&ceid=CR:es"
+    lang: "es"
+    stream: "traffic"
+    trust: true
 
 # -------- Cultural events --------
 # Events are now collected AUTOMATICALLY from GAM Cultural on every build

@@ -60,6 +60,13 @@
   .sources span{font-size:11.5px;color:var(--muted);background:#fff;border:1px solid var(--line);border-radius:999px;padding:3px 9px}
   .sources .srclabel{background:transparent;border:0;font-weight:700;color:var(--green-dark);padding-left:0}
   .empty{color:var(--muted);font-size:14px;padding:6px 2px}
+  .traffic-live{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:16px}
+  .traffic-live p{font-size:14px;color:var(--muted);margin-bottom:10px}
+  .traffic-btns{display:flex;gap:10px;flex-wrap:wrap}
+  .tbtn{display:inline-block;background:var(--green);color:#fff;text-decoration:none;font-weight:600;
+    font-size:14px;padding:10px 16px;border-radius:9px;transition:.15s}
+  .tbtn:hover{background:var(--green-dark)}
+  .traffic-sub{font-size:15px;color:var(--green-dark);margin:4px 0 12px}
   .hide{display:none}
 </style>
 </head>
@@ -84,7 +91,8 @@
   </div>
   <nav>
     {% for s in streams %}<a href="#{{ s.id }}" data-en="{{ s.icon }} {{ s.title_en }}" data-es="{{ s.icon }} {{ s.title_es }}">{{ s.icon }} {{ s.title_en }}</a>
-    {% endfor %}<a href="#events" data-en="🎭 What's on" data-es="🎭 Agenda cultural">🎭 What's on</a>
+    {% endfor %}<a href="#traffic" data-en="🚦 Traffic" data-es="🚦 Tráfico">🚦 Traffic</a>
+    <a href="#events" data-en="🎭 What's on" data-es="🎭 Agenda cultural">🎭 What's on</a>
   </nav>
 </header>
 
@@ -127,6 +135,36 @@
   </div>
   {% endif %}
   {% endfor %}
+
+  <!-- TRAFFIC & ROADS -->
+  <div class="section-head" id="traffic">
+    <span class="dot"></span>
+    <h2 data-en="Traffic &amp; roads" data-es="Tráfico y carreteras">Traffic &amp; roads</h2>
+    <small data-en="Live traffic and planned road closures" data-es="Tráfico en vivo y cierres de vías programados">Live traffic and planned road closures</small>
+  </div>
+  <div class="traffic-live">
+    <p data-en="See live traffic across the Central Valley:" data-es="Mira el tráfico en vivo en el Valle Central:">See live traffic across the Central Valley:</p>
+    <div class="traffic-btns">
+      <a class="tbtn" href="{{ site.traffic_map_google }}" target="_blank" rel="noopener" data-en="🗺️ Google Maps — live traffic" data-es="🗺️ Google Maps — tráfico en vivo">🗺️ Google Maps — live traffic</a>
+      <a class="tbtn" href="{{ site.traffic_map_waze }}" target="_blank" rel="noopener" data-en="🚗 Waze — live map" data-es="🚗 Waze — mapa en vivo">🚗 Waze — live map</a>
+    </div>
+  </div>
+  {% if traffic %}
+  <h3 class="traffic-sub" data-en="Planned road closures" data-es="Cierres de vías programados">Planned road closures</h3>
+  <div class="grid">
+    {% for it in traffic %}
+    <article class="card">
+      <div class="meta"><span class="tag">{{ it.source }}</span><span>{{ it.age }}</span></div>
+      <h3><a href="{{ it.url }}" target="_blank" rel="noopener" data-en="{{ it.title_en }}" data-es="{{ it.title_es }}">{{ it.title_en }}</a></h3>
+      <p data-en="{{ it.summary_en }}" data-es="{{ it.summary_es }}">{{ it.summary_en }}</p>
+      <div class="foot">
+        <span class="lang-badge" data-en="{{ 'EN original' if it.origin == 'en' else 'Translated from ES' }}" data-es="{{ 'Traducido del inglés' if it.origin == 'en' else 'Original en ES' }}">{{ 'EN original' if it.origin == 'en' else 'Translated from ES' }}</span>
+        <a href="{{ it.url }}" target="_blank" rel="noopener" data-en="Read at source →" data-es="Leer en la fuente →">Read at source →</a>
+      </div>
+    </article>
+    {% endfor %}
+  </div>
+  {% endif %}
 
   <div class="section-head" id="events">
     <span class="dot"></span>

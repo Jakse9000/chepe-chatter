@@ -116,15 +116,17 @@ def classify_items(items):
     Uses the Claude AI classifier when ANTHROPIC_API_KEY is set, otherwise
     falls back to the keyword rules in classify.py. Returns the engine name.
     """
-    # International-feed items are always world + relevant — no judgement needed.
-    local = [it for it in items if it["_feed"].get("stream") != "world"]
+    # International + traffic feeds bypass the judgement — fixed stream, shown.
+    auto = ("world", "traffic")
+    local = [it for it in items if it["_feed"].get("stream") not in auto]
     ai_results = CL_AI.classify_batch(local) if CL_AI.available() else None
 
     li = 0
     for it in items:
         feed = it["_feed"]
-        if feed.get("stream") == "world":
-            it["stream"], it["relevant"] = "world", True
+        fs = feed.get("stream")
+        if fs in auto:
+            it["stream"], it["relevant"] = fs, True
             continue
         if ai_results is not None:
             stream, relevant = ai_results[li]
@@ -193,15 +195,17 @@ def main():
     engine = classify_items(parsed)
     print(f"  sorted {len(parsed)} stories via {engine}")
 
-    buckets = {"world": [], "living": [], "sports": []}
+    buckets = {"world": [], "living": [], "sports": [], "traffic": []}
     for it in parsed:
         buckets[it["stream"]].append(it)
 
     # newest first, cap per stream, THEN translate only what we keep
+    max_traffic = cfg["site"].get("max_traffic", 6)
     for k in buckets:
         buckets[k].sort(key=lambda x: x["_sort"], reverse=True)
         # keep a few extra hidden items so "show everything" has content
-        buckets[k] = buckets[k][:limit + 4]
+        cap = max_traffic if k == "traffic" else limit + 4
+        buckets[k] = buckets[k][:cap]
         for it in buckets[k]:
             it.pop("_feed", None)
             translate_item(it, cfg)
@@ -235,6 +239,7 @@ def main():
     htmlout = tpl.render(
         site=cfg["site"],
         streams=streams,
+        traffic=buckets["traffic"],
         events=events,
         sources=[f["name"] for f in feeds],
         generated=NOW.strftime("%d %b %Y, %H:%M UTC"),

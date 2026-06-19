@@ -14,6 +14,7 @@ UPGRADING TO DEEPL LATER (better quality):
 
 import os
 import json
+import time
 import hashlib
 from pathlib import Path
 
@@ -22,6 +23,10 @@ CACHE_FILE = Path(__file__).parent / ".translation_cache.json"
 # Which engine is active this run. Included in the cache key so that switching
 # from Google to DeepL (or back) re-translates instead of reusing old results.
 ENGINE = "deepl" if os.environ.get("DEEPL_API_KEY") else "google"
+
+# Bump to discard old cached translations (e.g. after fixing a bug that cached
+# failed translations as the untranslated original).
+CACHE_VERSION = "v2"
 
 try:
     _cache = json.loads(CACHE_FILE.read_text(encoding="utf-8"))
@@ -37,7 +42,7 @@ def _save_cache():
 
 
 def _key(text, src, tgt):
-    h = hashlib.md5(f"{ENGINE}:{src}->{tgt}:{text}".encode("utf-8")).hexdigest()
+    h = hashlib.md5(f"{CACHE_VERSION}:{ENGINE}:{src}->{tgt}:{text}".encode("utf-8")).hexdigest()
     return h
 
 
@@ -69,30 +74,42 @@ def translate(text, src, tgt):
     if ck in _cache:
         return _cache[ck]
 
-    # Google's free endpoint caps length; chunk long text on sentence breaks.
-    try:
-        fn = _engine(src, tgt)
-        if len(text) <= 4500:
-            out = fn(text)
-        else:
-            parts, buf = [], ""
-            for sentence in text.replace("。", ". ").split(". "):
-                if len(buf) + len(sentence) > 4500:
-                    parts.append(fn(buf)); buf = ""
-                buf += sentence + ". "
-            if buf:
-                parts.append(fn(buf))
-            out = " ".join(parts)
-        out = (out or text).strip()
-    except Exception as e:
-        print(f"   ⚠ translation failed ({src}->{tgt}), keeping original: {e}")
-        out = text
+    # Try up to 3 times — DeepL's free tier rate-limits bursts with a 429,
+    # which a short backoff usually clears.
+    last_err = None
+    for attempt in range(3):
+        try:
+            out = _do_translate(text, src, tgt)
+            if out:
+                _cache[ck] = out          # cache ONLY successful translations
+                if len(_cache) % 10 == 0:
+                    _save_cache()
+                return out
+        except Exception as e:
+            last_err = e
+        time.sleep(1.0 * (attempt + 1))   # 1s, 2s backoff
 
-    _cache[ck] = out
-    # Periodically persist so a long first run can resume if interrupted.
-    if len(_cache) % 10 == 0:
-        _save_cache()
-    return out
+    # IMPORTANT: on failure we return the original but DO NOT cache it, so the
+    # next build retries instead of permanently storing untranslated text.
+    print(f"   ⚠ translation failed ({src}->{tgt}), keeping original this run: {last_err}")
+    return text
+
+
+def _do_translate(text, src, tgt):
+    """One translation attempt. Long text is chunked on sentence breaks."""
+    fn = _engine(src, tgt)
+    if len(text) <= 4500:
+        out = fn(text)
+    else:
+        parts, buf = [], ""
+        for sentence in text.replace("。", ". ").split(". "):
+            if len(buf) + len(sentence) > 4500:
+                parts.append(fn(buf)); buf = ""
+            buf += sentence + ". "
+        if buf:
+            parts.append(fn(buf))
+        out = " ".join(parts)
+    return (out or "").strip()
 
 
 def flush():
