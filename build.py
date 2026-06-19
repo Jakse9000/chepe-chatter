@@ -14,7 +14,6 @@ What it does, in order:
 You normally never edit this file. To change sources, edit feeds.yaml.
 """
 
-import os
 import sys
 import time
 import html
@@ -237,17 +236,11 @@ def main():
         autoescape=select_autoescape(["html"]),
     )
     tpl = env.get_template("index.html")
-    # Map key for the embedded live-traffic map. It's a client-side key (it
-    # ends up in the page and is secured by domain-restriction at TomTom), but
-    # we inject it from a secret so it isn't committed to the repo.
-    maps_key = os.environ.get("MAPS_KEY", "")
-
     htmlout = tpl.render(
         site=cfg["site"],
         streams=streams,
         traffic=buckets["traffic"],
         events=events,
-        maps_key=maps_key,
         sources=[f["name"] for f in feeds],
         generated=NOW.strftime("%d %b %Y, %H:%M UTC"),
     )

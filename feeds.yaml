@@ -25,11 +25,8 @@ site:
   max_items_per_stream: 9
   max_events: 8             # how many upcoming cultural events to show
   max_traffic: 6            # how many road-closure items to show
-  # Live-traffic map centre (Central Valley / San José). Change to re-centre.
-  traffic_lat: 9.9281
-  traffic_lon: -84.0907
-  traffic_zoom: 12
-  # Fallback buttons (used when no map key, and as "open full map" links).
+  # Live-traffic buttons — open Google Maps' traffic layer / Waze (both have
+  # real Costa Rica traffic data). Change coordinates to re-centre.
   traffic_map_google: "https://www.google.com/maps/@9.9281,-84.0907,11z/data=!5m1!1e1"
   traffic_map_waze: "https://www.waze.com/live-map?to=ll.9.9281%2C-84.0907"
   translate_hidden: true    # translate everything we show, so items still
