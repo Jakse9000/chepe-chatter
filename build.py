@@ -127,7 +127,12 @@ def classify_items(items):
             it["stream"], it["relevant"] = "world", True
             continue
         if ai_results is not None:
-            it["stream"], it["relevant"] = ai_results[li]
+            stream, relevant = ai_results[li]
+            # Trusted sources (e.g. Q Costa Rica, Tico Times) are made for
+            # foreigners, so always keep them — AI still decides the stream.
+            if feed.get("trust"):
+                relevant = True
+            it["stream"], it["relevant"] = stream, relevant
         else:
             it["stream"], it["relevant"] = classify.classify(it, feed)
         li += 1

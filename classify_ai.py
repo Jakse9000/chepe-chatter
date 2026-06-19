@@ -29,6 +29,8 @@ from pathlib import Path
 API_URL = "https://api.anthropic.com/v1/messages"
 MODEL = os.environ.get("CLASSIFIER_MODEL", "claude-haiku-4-5-20251001")
 BATCH = 20
+# Bump this whenever the prompt changes — it invalidates old cached verdicts.
+PROMPT_VERSION = "v2"
 
 CACHE_FILE = Path(__file__).parent / ".classify_cache.json"
 try:
@@ -37,17 +39,22 @@ except Exception:
     _cache = {}
 
 INSTRUCTIONS = (
-    "You sort Costa Rican local news for an audience of FOREIGNERS LIVING IN "
+    "You sort Costa Rican news for an audience of FOREIGNERS LIVING IN "
     "Costa Rica (expats, residents, newcomers) who read in English.\n"
     "For each article decide two things:\n"
     '  "stream": "sports" if it is primarily about sport, athletes, teams or '
     'competitions; otherwise "living".\n'
-    '  "relevant": true if it would genuinely matter to a foreigner living in '
-    "Costa Rica — e.g. immigration/residency, cost of living, healthcare and the "
-    "Caja, banking, taxes, driving/licences, safety, weather or disasters that "
-    "affect daily life, utilities, transport/airports, or major national news. "
-    "Set it false for niche local politics, celebrity gossip, generic "
-    "lifestyle/health filler, or routine crime with no broad relevance.\n"
+    '  "relevant": true if a foreigner living in Costa Rica would plausibly '
+    "want to read it. Be reasonably INCLUSIVE. This covers:\n"
+    "    - practical life: immigration/residency, cost of living, healthcare and "
+    "the Caja, banking, taxes, driving/licences, safety, weather or disasters, "
+    "utilities, housing, transport/airports;\n"
+    "    - AND general national interest: national politics and the economy, "
+    "major public events, business, the environment, and notable human-interest "
+    "or cultural stories about Costa Rica.\n"
+    "  Set relevant FALSE ONLY for clear noise: celebrity/farándula gossip, "
+    "horoscopes, generic lifestyle or self-help filler, clickbait, hyper-local "
+    "notices with no wider interest, and routine minor crime blotter.\n"
     "Return ONLY a JSON array, one object per article, no markdown, no prose:\n"
     '[{"i": <index>, "stream": "living|sports", "relevant": true|false}, ...]'
 )
@@ -65,7 +72,7 @@ def _save_cache():
 
 
 def _key(it):
-    raw = (it.get("title", "") + "|" + it.get("summary", "")).encode("utf-8")
+    raw = (PROMPT_VERSION + "|" + it.get("title", "") + "|" + it.get("summary", "")).encode("utf-8")
     return hashlib.md5(raw).hexdigest()
 
 
