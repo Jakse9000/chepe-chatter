@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>{{ site.name }} — Costa Rica news for newcomers</title>
+{% if maps_key %}<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">{% endif %}
 <style>
   :root{
     --green:#0a7d52; --green-dark:#075c3c; --sun:#f5b301; --sea:#1481ba;
@@ -67,6 +68,10 @@
     font-size:14px;padding:10px 16px;border-radius:9px;transition:.15s}
   .tbtn:hover{background:var(--green-dark)}
   .traffic-sub{font-size:15px;color:var(--green-dark);margin:4px 0 12px}
+  .trafficmap{height:440px;width:100%;border:1px solid var(--line);border-radius:12px;margin-bottom:10px;background:#eef4f1}
+  .map-cap{font-size:12.5px;color:var(--muted);margin:0 0 16px}
+  .map-legend{display:inline-flex;gap:12px;flex-wrap:wrap;align-items:center}
+  .map-legend i{display:inline-block;width:11px;height:11px;border-radius:2px;margin-right:4px;vertical-align:middle}
   .hide{display:none}
 </style>
 </head>
@@ -142,8 +147,19 @@
     <h2 data-en="Traffic &amp; roads" data-es="Tráfico y carreteras">Traffic &amp; roads</h2>
     <small data-en="Live traffic and planned road closures" data-es="Tráfico en vivo y cierres de vías programados">Live traffic and planned road closures</small>
   </div>
+  {% if maps_key %}
+  <div id="trafficmap" class="trafficmap"></div>
+  <p class="map-cap">
+    <span class="map-legend">
+      <span><i style="background:#2ecc71"></i><span data-en="Flowing" data-es="Fluido">Flowing</span></span>
+      <span><i style="background:#f1c40f"></i><span data-en="Slow" data-es="Lento">Slow</span></span>
+      <span><i style="background:#e74c3c"></i><span data-en="Congested" data-es="Congestionado">Congested</span></span>
+    </span>
+    <span data-en=" · Live traffic from TomTom, updates in real time." data-es=" · Tráfico en vivo de TomTom, se actualiza en tiempo real."> · Live traffic from TomTom, updates in real time.</span>
+  </p>
+  {% endif %}
   <div class="traffic-live">
-    <p data-en="See live traffic across the Central Valley:" data-es="Mira el tráfico en vivo en el Valle Central:">See live traffic across the Central Valley:</p>
+    <p data-en="Open the full live map:" data-es="Abre el mapa en vivo completo:">Open the full live map:</p>
     <div class="traffic-btns">
       <a class="tbtn" href="{{ site.traffic_map_google }}" target="_blank" rel="noopener" data-en="🗺️ Google Maps — live traffic" data-es="🗺️ Google Maps — tráfico en vivo">🗺️ Google Maps — live traffic</a>
       <a class="tbtn" href="{{ site.traffic_map_waze }}" target="_blank" rel="noopener" data-en="🚗 Waze — live map" data-es="🚗 Waze — mapa en vivo">🚗 Waze — live map</a>
@@ -209,5 +225,34 @@
   setLang('en');
   applyFilter();
 </script>
+{% if maps_key %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+  (function(){
+    var el = document.getElementById('trafficmap');
+    if(!el || !window.L) return;
+    var key = "{{ maps_key }}";
+    var done = false;
+    function init(){
+      if(done) return; done = true;
+      var map = L.map(el, {scrollWheelZoom:false})
+                 .setView([{{ site.traffic_lat }}, {{ site.traffic_lon }}], {{ site.traffic_zoom }});
+      L.tileLayer('https://api.tomtom.com/map/1/tile/basic/main/{z}/{x}/{y}.png?key=' + key,
+                  {maxZoom:18, attribution:'&copy; TomTom'}).addTo(map);
+      L.tileLayer('https://api.tomtom.com/traffic/map/4/tile/flow/relative0/{z}/{x}/{y}.png?key=' + key,
+                  {maxZoom:18, opacity:0.9}).addTo(map);
+      L.tileLayer('https://api.tomtom.com/traffic/map/4/tile/incidents/s3/{z}/{x}/{y}.png?key=' + key,
+                  {maxZoom:18}).addTo(map);
+    }
+    // Lazy-load: only build the map when the section scrolls into view.
+    if('IntersectionObserver' in window){
+      var io = new IntersectionObserver(function(es){
+        es.forEach(function(e){ if(e.isIntersecting){ init(); io.disconnect(); } });
+      }, {rootMargin:'250px'});
+      io.observe(el);
+    } else { init(); }
+  })();
+</script>
+{% endif %}
 </body>
 </html>

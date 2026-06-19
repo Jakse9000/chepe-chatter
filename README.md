@@ -138,6 +138,27 @@ what's relevant to foreigners, you can let Claude do the sorting:
    Remove the secret to go back to keyword rules. (Change the model with an
    optional `CLASSIFIER_MODEL` secret.)
 
+## Turning on the embedded live-traffic map (optional)
+
+The Traffic section always shows buttons to Google/Waze. To add a live map
+embedded right on the page (TomTom traffic data):
+
+1. Sign up free at https://developer.tomtom.com (no credit card). Create an
+   **API key**. The free tier is generous — far more than this site will use.
+2. Secure the key: in the TomTom dashboard, open your key and add
+   `chepe-chatter.news` (and `www.chepe-chatter.news`) to the **allowed domains
+   / whitelist**. This stops anyone else from using your key. Keep an eye on the
+   key's Activity dashboard now and then.
+3. In your repo: **Settings → Secrets and variables → Actions → New repository
+   secret.** Name it `MAPS_KEY`, paste the key, Save.
+4. Done — the next build embeds the live map automatically. The map only loads
+   when a visitor scrolls to the Traffic section (to keep usage low). Remove the
+   secret to go back to just the buttons. Re-centre the map by editing
+   `traffic_lat` / `traffic_lon` / `traffic_zoom` in `feeds.yaml`.
+
+Note: a map key always lives in the page (that's how browser maps work) — the
+domain whitelist in step 2 is what keeps it safe, not secrecy.
+
 ## Upgrading translation quality to DeepL (optional)
 
 The free engine is good. DeepL is better for Spanish. To switch:
