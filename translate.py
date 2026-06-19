@@ -16,6 +16,8 @@ import os
 import json
 import time
 import hashlib
+import urllib.request
+import urllib.error
 from pathlib import Path
 
 CACHE_FILE = Path(__file__).parent / ".translation_cache.json"
@@ -26,7 +28,7 @@ ENGINE = "deepl" if os.environ.get("DEEPL_API_KEY") else "google"
 
 # Bump to discard old cached translations (e.g. after fixing a bug that cached
 # failed translations as the untranslated original).
-CACHE_VERSION = "v2"
+CACHE_VERSION = "v3"
 
 try:
     _cache = json.loads(CACHE_FILE.read_text(encoding="utf-8"))
@@ -46,15 +48,38 @@ def _key(text, src, tgt):
     return h
 
 
+# DeepL wants regional codes for some targets (EN -> EN-US, PT -> PT-PT).
+_DEEPL_SOURCE = {"es": "ES", "en": "EN", "pt": "PT"}
+_DEEPL_TARGET = {"es": "ES", "en": "EN-US", "pt": "PT-PT"}
+
+
+def _deepl(text, src, tgt):
+    """Call DeepL's REST API directly (more reliable than the wrapper lib)."""
+    key = os.environ["DEEPL_API_KEY"].strip()
+    base = "https://api-free.deepl.com" if key.endswith(":fx") else "https://api.deepl.com"
+    body = json.dumps({
+        "text": [text],
+        "source_lang": _DEEPL_SOURCE.get(src, src.upper()),
+        "target_lang": _DEEPL_TARGET.get(tgt, tgt.upper()),
+    }).encode("utf-8")
+    req = urllib.request.Request(
+        base + "/v2/translate", data=body,
+        headers={"Authorization": "DeepL-Auth-Key " + key,
+                 "Content-Type": "application/json"},
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=30) as r:
+            data = json.loads(r.read().decode("utf-8"))
+    except urllib.error.HTTPError as e:
+        detail = e.read()[:200].decode("utf-8", "ignore")
+        raise RuntimeError(f"DeepL HTTP {e.code}: {detail}")
+    return data["translations"][0]["text"]
+
+
 def _engine(src, tgt):
     """Return a translate(text)->text callable for the best available engine."""
-    deepl_key = os.environ.get("DEEPL_API_KEY")
-    if deepl_key:
-        from deep_translator import DeeplTranslator
-        # DeepL free keys end in ":fx" and use a different endpoint than Pro.
-        is_free = deepl_key.strip().endswith(":fx")
-        tr = DeeplTranslator(api_key=deepl_key, source=src, target=tgt, use_free_api=is_free)
-        return tr.translate
+    if os.environ.get("DEEPL_API_KEY"):
+        return lambda text: _deepl(text, src, tgt)
     from deep_translator import GoogleTranslator
     tr = GoogleTranslator(source=src, target=tgt)
     return tr.translate
