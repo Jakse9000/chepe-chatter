@@ -25,6 +25,7 @@ import feedparser
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 import classify
+import classify_ai as CL_AI
 import translate as T
 import events as EV
 
@@ -90,27 +91,48 @@ def fetch_all(feeds):
     return raw
 
 
-def build_item(feed, entry):
-    """Parse + classify only. Translation happens later, after trimming."""
+def parse_item(feed, entry):
+    """Parse a feed entry into an item dict. Classification happens later."""
     title = clean(entry.get("title", ""))
     summary = clean(entry.get("summary", entry.get("description", "")))
     if len(summary) > 320:
         summary = summary[:317].rsplit(" ", 1)[0] + "…"
 
-    item = {"title": title, "summary": summary}
-    stream, relevant = classify.classify(item, feed)
     published = entry.get("published_parsed") or entry.get("updated_parsed")
-
     return {
         "source": feed["name"],
         "age": age_label(published),
         "url": entry.get("link", "#"),
         "title": title, "summary": summary,
         "origin": feed["lang"],
-        "relevant": relevant,
-        "stream": stream,
+        "_feed": feed,
         "_sort": sort_key(published),
     }
+
+
+def classify_items(items):
+    """
+    Assign each item a 'stream' and 'relevant' flag.
+    Uses the Claude AI classifier when ANTHROPIC_API_KEY is set, otherwise
+    falls back to the keyword rules in classify.py. Returns the engine name.
+    """
+    # International-feed items are always world + relevant — no judgement needed.
+    local = [it for it in items if it["_feed"].get("stream") != "world"]
+    ai_results = CL_AI.classify_batch(local) if CL_AI.available() else None
+
+    li = 0
+    for it in items:
+        feed = it["_feed"]
+        if feed.get("stream") == "world":
+            it["stream"], it["relevant"] = "world", True
+            continue
+        if ai_results is not None:
+            it["stream"], it["relevant"] = ai_results[li]
+        else:
+            it["stream"], it["relevant"] = classify.classify(it, feed)
+        li += 1
+
+    return "Claude AI" if ai_results is not None else "keyword rules"
 
 
 def translate_item(it, cfg):
@@ -151,17 +173,24 @@ def main():
 
     print("Fetching feeds…")
     raw = fetch_all(feeds)
-    print(f"Got {len(raw)} stories. Sorting & translating…")
+    print(f"Got {len(raw)} stories. Parsing…")
 
-    buckets = {"world": [], "living": [], "sports": []}
+    parsed = []
     seen = set()
     for feed, entry in raw:
         link = entry.get("link", "")
         if link and link in seen:
             continue
         seen.add(link)
-        item = build_item(feed, entry)
-        buckets[item["stream"]].append(item)
+        parsed.append(parse_item(feed, entry))
+
+    print("Classifying…")
+    engine = classify_items(parsed)
+    print(f"  sorted {len(parsed)} stories via {engine}")
+
+    buckets = {"world": [], "living": [], "sports": []}
+    for it in parsed:
+        buckets[it["stream"]].append(it)
 
     # newest first, cap per stream, THEN translate only what we keep
     for k in buckets:
@@ -169,6 +198,7 @@ def main():
         # keep a few extra hidden items so "show everything" has content
         buckets[k] = buckets[k][:limit + 4]
         for it in buckets[k]:
+            it.pop("_feed", None)
             translate_item(it, cfg)
 
     streams = []

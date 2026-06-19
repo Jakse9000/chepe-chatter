@@ -6,5 +6,6 @@ __pycache__/
 # Generated output (GitHub builds this fresh every run)
 site/
 
-# Translation cache is handled by GitHub's cache, not the repo
+# Caches are handled by GitHub's cache, not the repo
 .translation_cache.json
+.classify_cache.json

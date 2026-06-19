@@ -16,7 +16,8 @@ says exactly what to click. Take your time — nothing here can break anything.
 |---|---|
 | `feeds.yaml` | **The only file you'll normally edit.** Your list of news sources and events. |
 | `build.py` | The program that builds the site. You run it; you don't edit it. |
-| `classify.py` | The rules that decide "is this relevant to foreigners?" Edit later to fine-tune. |
+| `classify.py` | Keyword rules that decide "is this relevant to foreigners?" (the fallback). |
+| `classify_ai.py` | Optional smarter sorting using Claude. Turns on when you add an API key. |
 | `events.py` | Collects upcoming cultural events automatically from GAM Cultural. |
 | `translate.py` | The translator. Free now; ready for DeepL later. |
 | `templates/index.html` | The page design (your approved prototype). |
@@ -123,6 +124,19 @@ feeds automatically (the site never breaks), so just find the new feed address a
 **Fine-tune what counts as "relevant":** add words to the lists in `classify.py`.
 
 ---
+
+## Turning on AI sorting (optional, recommended)
+
+By default the site sorts news with keyword rules. For sharper judgement of
+what's relevant to foreigners, you can let Claude do the sorting:
+
+1. Get an API key at https://console.anthropic.com (Settings → API keys). Add a
+   little credit — at this site's volume it costs only cents per month.
+2. In your repo: **Settings → Secrets and variables → Actions → New repository
+   secret.** Name it `ANTHROPIC_API_KEY`, paste the key, Save.
+3. Done. The next build detects the key and switches to AI sorting automatically.
+   Remove the secret to go back to keyword rules. (Change the model with an
+   optional `CLASSIFIER_MODEL` secret.)
 
 ## Upgrading translation quality to DeepL (later, optional)
 

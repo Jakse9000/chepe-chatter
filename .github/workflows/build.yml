@@ -34,19 +34,23 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      # Re-use saved translations between runs (faster, gentler on the free engine)
-      - name: Restore translation cache
+      # Re-use saved translations + AI verdicts between runs (faster, cheaper)
+      - name: Restore caches
         uses: actions/cache@v4
         with:
-          path: .translation_cache.json
-          key: translations-${{ github.run_id }}
-          restore-keys: translations-
+          path: |
+            .translation_cache.json
+            .classify_cache.json
+          key: caches-${{ github.run_id }}
+          restore-keys: caches-
 
       - name: Build the site
-        # If you upgrade to DeepL later, add the key as a repo secret named
-        # DEEPL_API_KEY and uncomment the env block below.
-        # env:
-        #   DEEPL_API_KEY: ${{ secrets.DEEPL_API_KEY }}
+        # AI sorting turns on automatically when ANTHROPIC_API_KEY exists as a
+        # repo secret. If it's not set, the build uses the keyword rules.
+        # For better translation, also add a DEEPL_API_KEY secret.
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          DEEPL_API_KEY: ${{ secrets.DEEPL_API_KEY }}
         run: python build.py
 
       - name: Package the site for Pages
