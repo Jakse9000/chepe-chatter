@@ -138,16 +138,17 @@ what's relevant to foreigners, you can let Claude do the sorting:
    Remove the secret to go back to keyword rules. (Change the model with an
    optional `CLASSIFIER_MODEL` secret.)
 
-## Upgrading translation quality to DeepL (later, optional)
+## Upgrading translation quality to DeepL (optional)
 
-The free engine is good. DeepL is better for Spanish. When you want to switch:
+The free engine is good. DeepL is better for Spanish. To switch:
 
-1. Sign up at https://www.deepl.com/pro-api (there's a free tier).
-2. Copy your API key.
+1. Sign up at https://www.deepl.com/pro-api (there's a free tier, ~500k chars/month).
+2. Copy your API key (free keys end in `:fx` — that's fine, it's auto-detected).
 3. In your repo: **Settings → Secrets and variables → Actions → New repository secret.**
-   Name it `DEEPL_API_KEY`, paste the key.
-4. In `.github/workflows/build.yml`, remove the two `#` comment marks in front of the
-   `env:` and `DEEPL_API_KEY:` lines. Commit. Done — it now uses DeepL automatically.
+   Name it `DEEPL_API_KEY`, paste the key, Save.
+4. Done — the next build uses DeepL automatically (the workflow already passes the key).
+   Remove the secret to go back to the free engine. Switching engines re-translates
+   everything once, then caches as normal.
 
 ---
 

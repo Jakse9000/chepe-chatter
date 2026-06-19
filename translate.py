@@ -19,6 +19,10 @@ from pathlib import Path
 
 CACHE_FILE = Path(__file__).parent / ".translation_cache.json"
 
+# Which engine is active this run. Included in the cache key so that switching
+# from Google to DeepL (or back) re-translates instead of reusing old results.
+ENGINE = "deepl" if os.environ.get("DEEPL_API_KEY") else "google"
+
 try:
     _cache = json.loads(CACHE_FILE.read_text(encoding="utf-8"))
 except Exception:
@@ -33,7 +37,7 @@ def _save_cache():
 
 
 def _key(text, src, tgt):
-    h = hashlib.md5(f"{src}->{tgt}:{text}".encode("utf-8")).hexdigest()
+    h = hashlib.md5(f"{ENGINE}:{src}->{tgt}:{text}".encode("utf-8")).hexdigest()
     return h
 
 
@@ -42,7 +46,9 @@ def _engine(src, tgt):
     deepl_key = os.environ.get("DEEPL_API_KEY")
     if deepl_key:
         from deep_translator import DeeplTranslator
-        tr = DeeplTranslator(api_key=deepl_key, source=src, target=tgt, use_free_api=True)
+        # DeepL free keys end in ":fx" and use a different endpoint than Pro.
+        is_free = deepl_key.strip().endswith(":fx")
+        tr = DeeplTranslator(api_key=deepl_key, source=src, target=tgt, use_free_api=is_free)
         return tr.translate
     from deep_translator import GoogleTranslator
     tr = GoogleTranslator(source=src, target=tgt)
