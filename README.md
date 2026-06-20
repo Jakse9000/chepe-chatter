@@ -165,11 +165,20 @@ The free engine is good. DeepL is better for Spanish. To switch:
 
 ---
 
-## When you're ready to think about revenue
+## Sponsors (revenue)
 
-The sponsor slot already exists in the design (the dashed box under "Living here"). When
-you have steady readers, replace its placeholder text with a real sponsor in
-`templates/index.html`. The project plan lists the non-intrusive options in priority order.
+Sponsors are managed in the `sponsors:` list at the bottom of `feeds.yaml` — no
+coding. Each sponsor shows as a small "Supported by" card at the foot of the
+section(s) you assign it to (`world`, `living`, `sports`, `traffic`, `events`, or
+`["all"]`). Give a `name`, a short `tagline_en` and/or `tagline_es` (a missing one
+is auto-translated), an optional `logo` image URL, and a `link`.
+
+Assign several sponsors to the same section and they rotate automatically between
+hourly builds, so everyone gets fair exposure. Delete the list to hide all sponsor
+cards. The examples in there now use `https://example.com` — replace them with real
+sponsors when you have them. The project plan lists the non-intrusive revenue
+options in priority order; Google AdSense is possible later but needs original
+content on the site first to pass Google's review.
 
 ---
 

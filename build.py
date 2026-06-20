@@ -157,6 +157,32 @@ def translate_item(it, cfg):
     return it
 
 
+def build_sponsors(cfg):
+    """
+    Pick one sponsor per section (rotating hourly when several are assigned),
+    filling in any missing translated tagline. Returns {section_id: sponsor|None}.
+    """
+    sponsors = cfg.get("sponsors") or []
+    for sp in sponsors:
+        en, es = sp.get("tagline_en", ""), sp.get("tagline_es", "")
+        if en and not es:
+            sp["tagline_es"] = T.translate(en, "en", "es")
+        elif es and not en:
+            sp["tagline_en"] = T.translate(es, "es", "en")
+        sp.setdefault("tagline_en", "")
+        sp.setdefault("tagline_es", "")
+        sp.setdefault("logo", "")
+        sp.setdefault("link", "#")
+
+    rot = int(NOW.timestamp() // 3600)          # advances once per hour
+    by_section = {}
+    for sec in ("world", "living", "sports", "traffic", "events"):
+        matches = [sp for sp in sponsors
+                   if sec in sp.get("sections", []) or "all" in sp.get("sections", [])]
+        by_section[sec] = matches[rot % len(matches)] if matches else None
+    return by_section
+
+
 def build_events(events, fallback_link):
     out = []
     for ev in events or []:
@@ -229,6 +255,7 @@ def main():
         print("  using manual events from feeds.yaml")
         raw_events = cfg.get("events", [])
     events = build_events(raw_events, cfg.get("events_fallback_link", "#"))
+    sponsors = build_sponsors(cfg)
     T.flush()
 
     env = Environment(
@@ -241,6 +268,7 @@ def main():
         streams=streams,
         traffic=buckets["traffic"],
         events=events,
+        sponsors=sponsors,
         sources=[f["name"] for f in feeds],
         generated=NOW.strftime("%d %b %Y, %H:%M UTC"),
     )

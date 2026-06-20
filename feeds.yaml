@@ -114,3 +114,31 @@ events:
     desc: "Nueva exposición de artistas centroamericanos."
     where: "Museo de Arte y Diseño Contemporáneo"
     link: "https://www.madc.cr/"
+
+# -------- Sponsors --------
+# A small, tasteful "Supported by" card shown at the foot of the section(s)
+# you assign each sponsor to. Assign several to the same section and they
+# rotate automatically between builds. These two are EXAMPLES — replace them
+# with real sponsors (or delete the list to hide sponsor cards entirely).
+#
+# Each sponsor:
+#   name:        sponsor name (shown in bold)
+#   tagline_en:  short line in English   (give one or both languages;
+#   tagline_es:  short line in Spanish    a missing one is auto-translated)
+#   logo:        optional URL to a small logo image ("" for none)
+#   link:        where the card links to
+#   sections:    which sections it appears in — any of:
+#                world, living, sports, traffic, events  (or ["all"])
+sponsors:
+  - name: "Valley Relocation Co."
+    tagline_en: "Residency, banking & moving help for newcomers."
+    tagline_es: "Ayuda con residencia, bancos y mudanzas para recién llegados."
+    logo: ""
+    link: "https://example.com"
+    sections: ["living"]
+  - name: "Pura Vida Spanish School"
+    tagline_en: "Learn Spanish in the heart of San José."
+    tagline_es: "Aprende español en el corazón de San José."
+    logo: ""
+    link: "https://example.com"
+    sections: ["events", "world"]
