@@ -177,20 +177,27 @@ def fetch_sheet_sponsors(csv_url):
         print(f"   ⚠ sponsor sheet unreachable, skipping: {e}")
         return []
 
+    # Read by fixed column position (not header name): Google's CSV export can
+    # merge the header row with the first data row, so position is more robust.
+    # Columns: 0 timestamp, 1 company, 2 tagline_en, 3 tagline_es, 4 link,
+    #          5 logo, 6 section, 7 email, 8 approved
+    rows = list(csv.reader(io.StringIO(text)))
     out = []
-    for row in csv.DictReader(io.StringIO(text)):
-        row = {(k or "").strip().lower(): (v or "").strip() for k, v in row.items()}
-        if row.get("approved", "").lower() not in ("true", "yes", "1", "y", "x", "✓"):
+    for cols in rows[1:]:                       # skip the header row
+        if len(cols) < 9:
             continue
-        secs = [s.strip() for s in row.get("section", "").replace(";", ",").split(",") if s.strip()]
-        if not row.get("company"):
+        cols = [(c or "").strip() for c in cols]
+        if cols[8].lower() not in ("true", "yes", "1", "y", "x", "✓"):
             continue
+        if not cols[1]:
+            continue
+        secs = [s.strip() for s in cols[6].replace(";", ",").split(",") if s.strip()]
         out.append({
-            "name": row.get("company", ""),
-            "tagline_en": row.get("tagline_en", ""),
-            "tagline_es": row.get("tagline_es", ""),
-            "logo": row.get("logo", ""),
-            "link": row.get("link", "") or "#",
+            "name": cols[1],
+            "tagline_en": cols[2],
+            "tagline_es": cols[3],
+            "logo": cols[5],
+            "link": cols[4] or "#",
             "sections": secs or ["living"],
         })
     if out:

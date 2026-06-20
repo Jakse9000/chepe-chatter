@@ -32,8 +32,8 @@ site:
   # When set, businesses fill the on-page form and it lands in your Google
   # Sheet; you flip the row's `approved` cell to TRUE to publish it.
   # See setup/sponsor-form.gs and the README for the 5-minute setup.
-  sponsor_submit_url: ""    # Google Apps Script web-app URL (form posts here)
-  sponsor_sheet_csv: ""     # Published-CSV URL of the sheet (build reads here)
+  sponsor_submit_url: "https://script.google.com/macros/s/AKfycbxla3r9QvkAtQPDmW5RbjlnKfaE8exTKoLYVK6NI26rbjPeMNF88AVtNBcHwhaJEdA7/exec"
+  sponsor_sheet_csv: "https://docs.google.com/spreadsheets/d/18rCuY4kzkA3obDLZ24bPJrHRXbkJBeFHwyp4uoB3cK8/gviz/tq?tqx=out:csv&sheet=Sponsors"
   # Fallback if the self-service form isn't set up yet: a simple email link.
   advertise_email: "jaakse@gmail.com"
   # Live-traffic buttons — open Google Maps' traffic layer / Waze (both have

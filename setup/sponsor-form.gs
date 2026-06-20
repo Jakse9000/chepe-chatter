@@ -18,9 +18,13 @@
  *   6. Paste both URLs into feeds.yaml (sponsor_submit_url and sponsor_sheet_csv).
  */
 
+// The exact Google Sheet this writes to (and that the website reads from).
+// It's the ID in the sheet's URL: .../spreadsheets/d/THIS_PART/edit
+var SHEET_ID = '18rCuY4kzkA3obDLZ24bPJrHRXbkJBeFHwyp4uoB3cK8';
+
 function doPost(e) {
   try {
-    var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Sponsors');
+    var sheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName('Sponsors');
     var p = (e && e.parameter) ? e.parameter : {};
 
     // Basic honeypot: ignore bots that fill the hidden "website" field.
