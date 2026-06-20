@@ -28,11 +28,14 @@ site:
   # Weather chip in the header (San José). Current conditions, updates hourly.
   weather_lat: 9.9281
   weather_lon: -84.0907
-  # Sponsor booking: where enquiries go. Get a free access key at web3forms.com
-  # (just enter your email — no account). Paste it here to enable the on-page
-  # form. Leave blank to show a simple email link instead.
+  # --- Sponsor self-service (optional) ---
+  # When set, businesses fill the on-page form and it lands in your Google
+  # Sheet; you flip the row's `approved` cell to TRUE to publish it.
+  # See setup/sponsor-form.gs and the README for the 5-minute setup.
+  sponsor_submit_url: ""    # Google Apps Script web-app URL (form posts here)
+  sponsor_sheet_csv: ""     # Published-CSV URL of the sheet (build reads here)
+  # Fallback if the self-service form isn't set up yet: a simple email link.
   advertise_email: "jaakse@gmail.com"
-  advertise_form_key: ""
   # Live-traffic buttons — open Google Maps' traffic layer / Waze (both have
   # real Costa Rica traffic data). Change coordinates to re-centre.
   traffic_map_google: "https://www.google.com/maps/@9.9281,-84.0907,11z/data=!5m1!1e1"

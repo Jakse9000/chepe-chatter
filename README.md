@@ -178,15 +178,46 @@ hourly builds, so everyone gets fair exposure.
 
 **Available / placeholder spots:** set `placeholder: true` on a sponsor to show an
 "this spot is available — book it" card instead. It links to the **Advertise**
-section, which has a contact form so businesses can enquire directly on the site.
+section at the bottom of the page.
 
-**Turning on the booking form:** by default the Advertise section shows a simple
-email link (to `advertise_email`). For a real on-page form, get a free access key
-at https://web3forms.com (just enter your email — no account), then paste it into
-`advertise_form_key` in `feeds.yaml`. Submissions are emailed to you.
+### Self-service sponsor sign-up (optional but recommended)
 
-Google AdSense is possible later but needs original content on the site first to
-pass Google's review.
+Let businesses fill in their own details on the site; the request lands in a
+Google Sheet, and you publish it with one tick. No server, no coding.
+
+**How it flows:** business fills the Advertise form → a Google Apps Script adds a
+row to your Sheet (with `approved = FALSE`) → you change that cell to `TRUE` → the
+next hourly build shows their sponsor card. (You stay in control — nothing goes
+live until you approve it, which protects your site from spam.)
+
+**One-time setup (~5 minutes):**
+
+1. Create a Google Sheet. Rename the first tab exactly `Sponsors` and put these
+   headers in row 1:
+   `timestamp | company | tagline_en | tagline_es | link | logo | section | email | approved`
+2. In the Sheet: **Extensions → Apps Script**. Delete the sample, paste the
+   contents of `setup/sponsor-form.gs` from this project, and Save.
+3. **Deploy → New deployment → Web app.** Set *Execute as: Me* and
+   *Who has access: Anyone*. Authorise it, then copy the **Web app URL** (ends `/exec`).
+4. **File → Share → Publish to web →** pick the `Sponsors` sheet, format **CSV**,
+   Publish, and copy that **CSV URL**.
+5. Paste both URLs into `feeds.yaml`: the Web app URL into `sponsor_submit_url`,
+   the CSV URL into `sponsor_sheet_csv`. Commit & push.
+
+Done. Businesses can now sign up themselves. To publish one, open the Sheet and set
+its `approved` cell to `TRUE`. To take one down, set it back to `FALSE`. A missing
+Spanish tagline is auto-translated at build time.
+
+If you skip this setup, the Advertise section just shows an email link instead.
+
+### Payment later
+
+Adding self-service *payment* is possible but needs more parts: Stripe isn't
+available in Costa Rica, so you'd use PayPal plus an automation (e.g. Zapier) that
+flips `approved` to `TRUE` once someone pays. Ask to add this when you're ready.
+
+Google AdSense is possible later too, but needs original content on the site first
+to pass Google's review.
 
 ## Weather
 

@@ -84,9 +84,10 @@
   .advertise p{font-size:14px;color:var(--muted);margin-bottom:14px;max-width:640px}
   .ad-form{display:flex;flex-direction:column;gap:10px;max-width:640px}
   .ad-row{display:flex;gap:10px;flex-wrap:wrap}
-  .ad-form input,.ad-form textarea{flex:1 1 200px;font:inherit;font-size:14px;padding:10px 12px;
-    border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink)}
+  .ad-form input,.ad-form textarea,.ad-form select{flex:1 1 200px;font:inherit;font-size:14px;padding:10px 12px;
+    border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink);width:100%}
   .ad-form textarea{resize:vertical}
+  .ad-thanks{font-size:15px;color:var(--green-dark);font-weight:600;padding:6px 0}
   .ad-form button{align-self:flex-start;background:var(--green);color:#fff;border:0;font-weight:600;
     font-size:14px;padding:11px 20px;border-radius:9px;cursor:pointer;transition:.15s}
   .ad-form button:hover{background:var(--green-dark)}
@@ -233,25 +234,34 @@
     <small data-en="Reach foreigners living in Costa Rica" data-es="Llega a los extranjeros en Costa Rica">Reach foreigners living in Costa Rica</small>
   </div>
   <div class="advertise">
-    <p data-en="Chepe Chatter reaches newcomers and foreign residents across Costa Rica. Sponsor spots are kept tasteful — one small card per section. Tell us a bit about your business and we'll send placement options and prices." data-es="Chepe Chatter llega a recién llegados y residentes extranjeros en toda Costa Rica. Los espacios de patrocinio son discretos — una tarjeta pequeña por sección. Cuéntanos sobre tu negocio y te enviamos opciones de ubicación y precios."></p>
-    {% if site.advertise_form_key %}
-    <form class="ad-form" action="https://api.web3forms.com/submit" method="POST">
-      <input type="hidden" name="access_key" value="{{ site.advertise_form_key }}">
-      <input type="hidden" name="subject" value="New sponsor enquiry — Chepe Chatter">
-      <input type="hidden" name="from_name" value="Chepe Chatter">
-      <input type="checkbox" name="botcheck" style="display:none" tabindex="-1" autocomplete="off">
+    <p data-en="Chepe Chatter reaches newcomers and foreign residents across Costa Rica. Sponsor spots are kept tasteful — one small card per section. Fill in your details below and request a spot; we review every submission before it goes live." data-es="Chepe Chatter llega a recién llegados y residentes extranjeros en toda Costa Rica. Los espacios de patrocinio son discretos — una tarjeta pequeña por sección. Rellena tus datos abajo y solicita un espacio; revisamos cada solicitud antes de publicarla."></p>
+    {% if site.sponsor_submit_url %}
+    <form class="ad-form" id="sponsorForm">
+      <input type="text" name="website" class="hide" tabindex="-1" autocomplete="off" aria-hidden="true">
       <div class="ad-row">
-        <input type="text" name="name" required data-ph-en="Your name" data-ph-es="Tu nombre" placeholder="Your name">
-        <input type="text" name="company" data-ph-en="Company" data-ph-es="Empresa" placeholder="Company">
+        <input type="text" name="company" required data-ph-en="Business name" data-ph-es="Nombre del negocio" placeholder="Business name">
+        <input type="email" name="email" required data-ph-en="Your email" data-ph-es="Tu correo electrónico" placeholder="Your email">
       </div>
       <div class="ad-row">
-        <input type="email" name="email" required data-ph-en="Email" data-ph-es="Correo electrónico" placeholder="Email">
-        <input type="text" name="section" data-ph-en="Section of interest (e.g. Living here)" data-ph-es="Sección de interés (p. ej. Vivir aquí)" placeholder="Section of interest">
+        <input type="url" name="link" required data-ph-en="Link to your website" data-ph-es="Enlace a tu sitio web" placeholder="Link to your website">
+        <input type="url" name="logo" data-ph-en="Logo image URL (optional)" data-ph-es="URL del logo (opcional)" placeholder="Logo image URL (optional)">
       </div>
-      <textarea name="message" rows="3" data-ph-en="Tell us a little about your business" data-ph-es="Cuéntanos un poco sobre tu negocio" placeholder="Tell us a little about your business"></textarea>
-      <button type="submit" data-en="Send enquiry" data-es="Enviar solicitud">Send enquiry</button>
-      <p class="ad-note" data-en="We'll reply by email — no account needed." data-es="Responderemos por correo — sin necesidad de cuenta.">We'll reply by email — no account needed.</p>
+      <select name="section" required>
+        <option value="" data-en="Choose a section…" data-es="Elige una sección…">Choose a section…</option>
+        <option value="living" data-en="Living here" data-es="Vivir aquí">Living here</option>
+        <option value="world" data-en="Costa Rica in the world" data-es="Costa Rica en el mundo">Costa Rica in the world</option>
+        <option value="sports" data-en="Sports" data-es="Deportes">Sports</option>
+        <option value="traffic" data-en="Traffic &amp; roads" data-es="Tráfico y carreteras">Traffic &amp; roads</option>
+        <option value="events" data-en="What's on" data-es="Agenda cultural">What's on</option>
+      </select>
+      <div class="ad-row">
+        <input type="text" name="tagline_en" data-ph-en="Short tagline in English" data-ph-es="Eslogan corto en inglés" placeholder="Short tagline in English">
+        <input type="text" name="tagline_es" data-ph-en="Short tagline in Spanish (optional)" data-ph-es="Eslogan corto en español (opcional)" placeholder="Short tagline in Spanish">
+      </div>
+      <button type="submit" data-en="Request this spot" data-es="Solicitar este espacio">Request this spot</button>
+      <p class="ad-note" data-en="We review every request before it goes live — usually within a day. A missing Spanish tagline is translated automatically." data-es="Revisamos cada solicitud antes de publicarla — normalmente en un día. Un eslogan en español que falte se traduce automáticamente.">We review every request before it goes live.</p>
     </form>
+    <p id="adThanks" class="hide ad-thanks" data-en="✅ Thanks! We've received your request and will review it shortly." data-es="✅ ¡Gracias! Hemos recibido tu solicitud y la revisaremos pronto."></p>
     {% else %}
     <p data-en="Interested? Email us and we'll send the options and prices:" data-es="¿Interesado? Escríbenos y te enviamos las opciones y precios:">Interested? Email us and we'll send the options and prices:</p>
     <a class="tbtn" href="mailto:{{ site.advertise_email }}?subject=Sponsor%20enquiry%20-%20Chepe%20Chatter">{{ site.advertise_email }}</a>
@@ -287,5 +297,28 @@
   setLang('en');
   applyFilter();
 </script>
+{% if site.sponsor_submit_url %}
+<script>
+  (function(){
+    var f = document.getElementById('sponsorForm');
+    if(!f) return;
+    f.addEventListener('submit', function(ev){
+      ev.preventDefault();
+      var btn = f.querySelector('button[type=submit]');
+      if(btn) btn.disabled = true;
+      var done = function(){
+        f.classList.add('hide');
+        document.getElementById('adThanks').classList.remove('hide');
+      };
+      // Apps Script doesn't send CORS headers, so we fire-and-forget (no-cors)
+      // and show the thank-you regardless of the opaque response.
+      fetch("{{ site.sponsor_submit_url }}", {
+        method: 'POST', mode: 'no-cors',
+        body: new URLSearchParams(new FormData(f))
+      }).then(done, done);
+    });
+  })();
+</script>
+{% endif %}
 </body>
 </html>

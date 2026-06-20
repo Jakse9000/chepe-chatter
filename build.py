@@ -14,9 +14,12 @@ What it does, in order:
 You normally never edit this file. To change sources, edit feeds.yaml.
 """
 
+import io
+import csv
 import sys
 import time
 import html
+import urllib.request
 import datetime as dt
 from pathlib import Path
 
@@ -158,12 +161,51 @@ def translate_item(it, cfg):
     return it
 
 
+def fetch_sheet_sponsors(csv_url):
+    """
+    Read self-service sponsors from the published Google Sheet (CSV).
+    Only rows whose `approved` cell is truthy are included — that's the
+    owner's one-click publish control.
+    """
+    if not csv_url:
+        return []
+    try:
+        req = urllib.request.Request(csv_url, headers={"User-Agent": "Chepe Chatter"})
+        with urllib.request.urlopen(req, timeout=20) as r:
+            text = r.read().decode("utf-8", "ignore")
+    except Exception as e:
+        print(f"   ⚠ sponsor sheet unreachable, skipping: {e}")
+        return []
+
+    out = []
+    for row in csv.DictReader(io.StringIO(text)):
+        row = {(k or "").strip().lower(): (v or "").strip() for k, v in row.items()}
+        if row.get("approved", "").lower() not in ("true", "yes", "1", "y", "x", "✓"):
+            continue
+        secs = [s.strip() for s in row.get("section", "").replace(";", ",").split(",") if s.strip()]
+        if not row.get("company"):
+            continue
+        out.append({
+            "name": row.get("company", ""),
+            "tagline_en": row.get("tagline_en", ""),
+            "tagline_es": row.get("tagline_es", ""),
+            "logo": row.get("logo", ""),
+            "link": row.get("link", "") or "#",
+            "sections": secs or ["living"],
+        })
+    if out:
+        print(f"  + {len(out)} approved sponsor(s) from the sheet")
+    return out
+
+
 def build_sponsors(cfg):
     """
     Pick one sponsor per section (rotating hourly when several are assigned),
     filling in any missing translated tagline. Returns {section_id: sponsor|None}.
+    Sponsors come from feeds.yaml AND the self-service Google Sheet.
     """
-    sponsors = cfg.get("sponsors") or []
+    sponsors = list(cfg.get("sponsors") or [])
+    sponsors += fetch_sheet_sponsors(cfg["site"].get("sponsor_sheet_csv", ""))
     for sp in sponsors:
         en, es = sp.get("tagline_en", ""), sp.get("tagline_es", "")
         if en and not es:
