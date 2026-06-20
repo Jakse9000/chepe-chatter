@@ -1,9 +1,16 @@
 {%- macro sponsor_card(sp) -%}
+{% if sp.placeholder %}
+<a class="sponsor sponsor-open" href="#advertise">
+  <span class="pill" data-en="Your spot" data-es="Tu espacio">Your spot</span>
+  <span class="sponsor-text" data-en="This sponsor spot is available — reach foreigners arriving in Costa Rica. Book it →" data-es="Este espacio de patrocinio está disponible — llega a los extranjeros que llegan a Costa Rica. Resérvalo →">This sponsor spot is available — reach foreigners arriving in Costa Rica. Book it →</span>
+</a>
+{% else %}
 <a class="sponsor" href="{{ sp.link }}" target="_blank" rel="noopener sponsored">
   <span class="pill" data-en="Supported by" data-es="Con apoyo de">Supported by</span>
   {% if sp.logo %}<img class="sponsor-logo" src="{{ sp.logo }}" alt="{{ sp.name }}" loading="lazy">{% endif %}
   <span class="sponsor-text"><b>{{ sp.name }}</b> <span data-en="— {{ sp.tagline_en }}" data-es="— {{ sp.tagline_es }}">— {{ sp.tagline_en }}</span></span>
 </a>
+{% endif %}
 {%- endmacro -%}
 <!DOCTYPE html>
 <html lang="en">
@@ -65,6 +72,25 @@
   .sponsor-logo{height:30px;width:auto;max-width:120px;border-radius:5px;background:#fff;flex:0 0 auto;object-fit:contain}
   .sponsor-text{line-height:1.4}
   .sponsor-text b{color:var(--ink)}
+  .sponsor-open{background:#f1f8f4}
+  .sponsor-open .pill{background:var(--green);color:#fff}
+  .sponsor-open .sponsor-text{color:var(--green-dark);font-weight:600}
+  .weather{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.15);
+    padding:6px 12px;border-radius:999px;font-size:13px;color:#fff;white-space:nowrap}
+  .weather .wx-temp{font-weight:700}
+  .weather .wx-desc{opacity:.85}
+  @media(max-width:620px){ .weather .wx-desc{display:none} }
+  .advertise{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px;margin-top:14px}
+  .advertise p{font-size:14px;color:var(--muted);margin-bottom:14px;max-width:640px}
+  .ad-form{display:flex;flex-direction:column;gap:10px;max-width:640px}
+  .ad-row{display:flex;gap:10px;flex-wrap:wrap}
+  .ad-form input,.ad-form textarea{flex:1 1 200px;font:inherit;font-size:14px;padding:10px 12px;
+    border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink)}
+  .ad-form textarea{resize:vertical}
+  .ad-form button{align-self:flex-start;background:var(--green);color:#fff;border:0;font-weight:600;
+    font-size:14px;padding:11px 20px;border-radius:9px;cursor:pointer;transition:.15s}
+  .ad-form button:hover{background:var(--green-dark)}
+  .ad-note{font-size:12.5px;color:var(--muted);margin-top:8px}
   footer{background:var(--green-dark);color:#cfe7dc;font-size:13px;text-align:center;padding:26px 20px}
   .note{max-width:1080px;margin:0 auto 6px;font-size:12px;color:var(--muted);background:#eef4f1;border-radius:8px;padding:8px 12px}
   .sources{max-width:1080px;margin:0 auto 4px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:4px 0}
@@ -92,6 +118,13 @@
       </div>
     </div>
     <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+      {% if weather %}
+      <div class="weather" title="San José">
+        <span>{{ weather.emoji }}</span>
+        <span class="wx-temp">{{ weather.temp }}°C</span>
+        <span class="wx-desc" data-en="San José · {{ weather.desc_en }}" data-es="San José · {{ weather.desc_es }}">San José · {{ weather.desc_en }}</span>
+      </div>
+      {% endif %}
       <label class="relfilter"><input type="checkbox" id="relToggle" checked onchange="applyFilter()">
         <span data-en="Only what matters to foreigners" data-es="Solo lo relevante para extranjeros">Only what matters to foreigners</span></label>
       <div class="toggle" role="group" aria-label="Language">
@@ -192,9 +225,42 @@
     {% endfor %}
   </div>
   {% if sponsors['events'] %}{{ sponsor_card(sponsors['events']) }}{% endif %}
+
+  <!-- ADVERTISE / SPONSOR -->
+  <div class="section-head" id="advertise">
+    <span class="dot"></span>
+    <h2 data-en="Advertise with us" data-es="Anúnciate con nosotros">Advertise with us</h2>
+    <small data-en="Reach foreigners living in Costa Rica" data-es="Llega a los extranjeros en Costa Rica">Reach foreigners living in Costa Rica</small>
+  </div>
+  <div class="advertise">
+    <p data-en="Chepe Chatter reaches newcomers and foreign residents across Costa Rica. Sponsor spots are kept tasteful — one small card per section. Tell us a bit about your business and we'll send placement options and prices." data-es="Chepe Chatter llega a recién llegados y residentes extranjeros en toda Costa Rica. Los espacios de patrocinio son discretos — una tarjeta pequeña por sección. Cuéntanos sobre tu negocio y te enviamos opciones de ubicación y precios."></p>
+    {% if site.advertise_form_key %}
+    <form class="ad-form" action="https://api.web3forms.com/submit" method="POST">
+      <input type="hidden" name="access_key" value="{{ site.advertise_form_key }}">
+      <input type="hidden" name="subject" value="New sponsor enquiry — Chepe Chatter">
+      <input type="hidden" name="from_name" value="Chepe Chatter">
+      <input type="checkbox" name="botcheck" style="display:none" tabindex="-1" autocomplete="off">
+      <div class="ad-row">
+        <input type="text" name="name" required data-ph-en="Your name" data-ph-es="Tu nombre" placeholder="Your name">
+        <input type="text" name="company" data-ph-en="Company" data-ph-es="Empresa" placeholder="Company">
+      </div>
+      <div class="ad-row">
+        <input type="email" name="email" required data-ph-en="Email" data-ph-es="Correo electrónico" placeholder="Email">
+        <input type="text" name="section" data-ph-en="Section of interest (e.g. Living here)" data-ph-es="Sección de interés (p. ej. Vivir aquí)" placeholder="Section of interest">
+      </div>
+      <textarea name="message" rows="3" data-ph-en="Tell us a little about your business" data-ph-es="Cuéntanos un poco sobre tu negocio" placeholder="Tell us a little about your business"></textarea>
+      <button type="submit" data-en="Send enquiry" data-es="Enviar solicitud">Send enquiry</button>
+      <p class="ad-note" data-en="We'll reply by email — no account needed." data-es="Responderemos por correo — sin necesidad de cuenta.">We'll reply by email — no account needed.</p>
+    </form>
+    {% else %}
+    <p data-en="Interested? Email us and we'll send the options and prices:" data-es="¿Interesado? Escríbenos y te enviamos las opciones y precios:">Interested? Email us and we'll send the options and prices:</p>
+    <a class="tbtn" href="mailto:{{ site.advertise_email }}?subject=Sponsor%20enquiry%20-%20Chepe%20Chatter">{{ site.advertise_email }}</a>
+    {% endif %}
+  </div>
 </main>
 
 <footer>
+  <p><a href="#advertise" style="color:#fff;font-weight:600" data-en="📣 Advertise with us" data-es="📣 Anúnciate con nosotros">📣 Advertise with us</a></p>
   <p data-en="{{ site.name }} · {{ site.domain }} · Headlines & summaries link back to original sources." data-es="{{ site.name }} · {{ site.domain }} · Los titulares y resúmenes enlazan a las fuentes originales.">{{ site.name }} · {{ site.domain }}</p>
 </footer>
 
@@ -206,6 +272,10 @@
     document.querySelectorAll('[data-en]').forEach(function(el){
       var val = el.getAttribute('data-'+lang);
       if(val!=null) el.innerHTML = val;
+    });
+    document.querySelectorAll('[data-ph-en]').forEach(function(el){
+      var val = el.getAttribute('data-ph-'+lang);
+      if(val!=null) el.placeholder = val;
     });
   }
   function applyFilter(){

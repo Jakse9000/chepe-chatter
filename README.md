@@ -174,11 +174,25 @@ section(s) you assign it to (`world`, `living`, `sports`, `traffic`, `events`, o
 is auto-translated), an optional `logo` image URL, and a `link`.
 
 Assign several sponsors to the same section and they rotate automatically between
-hourly builds, so everyone gets fair exposure. Delete the list to hide all sponsor
-cards. The examples in there now use `https://example.com` — replace them with real
-sponsors when you have them. The project plan lists the non-intrusive revenue
-options in priority order; Google AdSense is possible later but needs original
-content on the site first to pass Google's review.
+hourly builds, so everyone gets fair exposure.
+
+**Available / placeholder spots:** set `placeholder: true` on a sponsor to show an
+"this spot is available — book it" card instead. It links to the **Advertise**
+section, which has a contact form so businesses can enquire directly on the site.
+
+**Turning on the booking form:** by default the Advertise section shows a simple
+email link (to `advertise_email`). For a real on-page form, get a free access key
+at https://web3forms.com (just enter your email — no account), then paste it into
+`advertise_form_key` in `feeds.yaml`. Submissions are emailed to you.
+
+Google AdSense is possible later but needs original content on the site first to
+pass Google's review.
+
+## Weather
+
+The header shows San José's current weather, fetched free from Open-Meteo (no key)
+on each hourly build. Nothing to set up; change the location with `weather_lat` /
+`weather_lon` in `feeds.yaml`.
 
 ---
 

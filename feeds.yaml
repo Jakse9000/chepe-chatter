@@ -25,6 +25,14 @@ site:
   max_items_per_stream: 9
   max_events: 8             # how many upcoming cultural events to show
   max_traffic: 6            # how many road-closure items to show
+  # Weather chip in the header (San José). Current conditions, updates hourly.
+  weather_lat: 9.9281
+  weather_lon: -84.0907
+  # Sponsor booking: where enquiries go. Get a free access key at web3forms.com
+  # (just enter your email — no account). Paste it here to enable the on-page
+  # form. Leave blank to show a simple email link instead.
+  advertise_email: "jaakse@gmail.com"
+  advertise_form_key: ""
   # Live-traffic buttons — open Google Maps' traffic layer / Waze (both have
   # real Costa Rica traffic data). Change coordinates to re-centre.
   traffic_map_google: "https://www.google.com/maps/@9.9281,-84.0907,11z/data=!5m1!1e1"
@@ -129,14 +137,19 @@ events:
 #   link:        where the card links to
 #   sections:    which sections it appears in — any of:
 #                world, living, sports, traffic, events  (or ["all"])
+# Set `placeholder: true` on a sponsor to show an "available slot" card that
+# invites businesses to book (it links to the booking form). Remove the flag
+# and fill in real details once a sponsor signs up.
 sponsors:
   - name: "Valley Relocation Co."
+    placeholder: true
     tagline_en: "Residency, banking & moving help for newcomers."
     tagline_es: "Ayuda con residencia, bancos y mudanzas para recién llegados."
     logo: ""
     link: "https://example.com"
     sections: ["living"]
   - name: "Pura Vida Spanish School"
+    placeholder: true
     tagline_en: "Learn Spanish in the heart of San José."
     tagline_es: "Aprende español en el corazón de San José."
     logo: ""

@@ -28,6 +28,7 @@ import classify
 import classify_ai as CL_AI
 import translate as T
 import events as EV
+import weather as WX
 
 ROOT = Path(__file__).parent
 OUT = ROOT / "site"
@@ -256,6 +257,9 @@ def main():
         raw_events = cfg.get("events", [])
     events = build_events(raw_events, cfg.get("events_fallback_link", "#"))
     sponsors = build_sponsors(cfg)
+    print("Fetching weather…")
+    wx = WX.get_weather(cfg["site"].get("weather_lat", 9.9281),
+                        cfg["site"].get("weather_lon", -84.0907))
     T.flush()
 
     env = Environment(
@@ -269,6 +273,7 @@ def main():
         traffic=buckets["traffic"],
         events=events,
         sponsors=sponsors,
+        weather=wx,
         sources=[f["name"] for f in feeds],
         generated=NOW.strftime("%d %b %Y, %H:%M UTC"),
     )
