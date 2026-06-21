@@ -20,8 +20,8 @@
 site:
   name: "Chepe Chatter"
   domain: "chepe-chatter.news"
-  tagline_en: "Costa Rica news & culture, for newcomers"
-  tagline_es: "Noticias y cultura de Costa Rica, para recién llegados"
+  tagline_en: "Costa Rica news & culture"
+  tagline_es: "Noticias y cultura de Costa Rica"
   max_items_per_stream: 9
   max_events: 8             # how many upcoming cultural events to show
   max_traffic: 6            # how many road-closure items to show
