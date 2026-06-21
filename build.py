@@ -120,28 +120,35 @@ def classify_items(items):
     Uses the Claude AI classifier when ANTHROPIC_API_KEY is set, otherwise
     falls back to the keyword rules in classify.py. Returns the engine name.
     """
-    # International + traffic feeds bypass the judgement — fixed stream, shown.
-    auto = ("world", "traffic")
-    local = [it for it in items if it["_feed"].get("stream") not in auto]
-    ai_results = CL_AI.classify_batch(local) if CL_AI.available() else None
+    # Traffic (road closures) is always shown. Everything else — local AND
+    # international — is judged by the AI for relevance, so lifestyle/travel
+    # fluff from the news search gets filtered out too.
+    judged = [it for it in items if it["_feed"].get("stream") != "traffic"]
+    ai_results = CL_AI.classify_batch(judged) if CL_AI.available() else None
 
-    li = 0
+    ji = 0
     for it in items:
         feed = it["_feed"]
         fs = feed.get("stream")
-        if fs in auto:
-            it["stream"], it["relevant"] = fs, True
+        if fs == "traffic":
+            it["stream"], it["relevant"] = "traffic", True
             continue
+        if fs == "world":
+            # International coverage keeps its stream; the AI judges relevance
+            # (keyword fallback can't judge international items, so show them).
+            it["stream"] = "world"
+            it["relevant"] = ai_results[ji][1] if ai_results is not None else True
+            ji += 1
+            continue
+        # Local feeds: AI picks stream + relevance; trusted expat sources kept.
         if ai_results is not None:
-            stream, relevant = ai_results[li]
-            # Trusted sources (e.g. Q Costa Rica, Tico Times) are made for
-            # foreigners, so always keep them — AI still decides the stream.
+            stream, relevant = ai_results[ji]
             if feed.get("trust"):
                 relevant = True
             it["stream"], it["relevant"] = stream, relevant
         else:
             it["stream"], it["relevant"] = classify.classify(it, feed)
-        li += 1
+        ji += 1
 
     return "Claude AI" if ai_results is not None else "keyword rules"
 
@@ -205,6 +212,17 @@ def fetch_sheet_sponsors(csv_url):
     return out
 
 
+def _clean_logo(url):
+    """Only accept a logo that is really an image file URL — a stray or broken
+    link (e.g. a page or folder) would otherwise wreck the card layout."""
+    url = (url or "").strip()
+    if not url.startswith(("http://", "https://")):
+        return ""
+    path = url.split("?")[0].split("#")[0].lower()
+    ext = path.rsplit(".", 1)[-1] if "." in path else ""
+    return url if ext in ("png", "jpg", "jpeg", "gif", "webp", "svg") else ""
+
+
 def build_sponsors(cfg):
     """
     Pick one sponsor per section (rotating hourly when several are assigned),
@@ -213,6 +231,8 @@ def build_sponsors(cfg):
     """
     sponsors = list(cfg.get("sponsors") or [])
     sponsors += fetch_sheet_sponsors(cfg["site"].get("sponsor_sheet_csv", ""))
+    for sp in sponsors:
+        sp["logo"] = _clean_logo(sp.get("logo", ""))
     for sp in sponsors:
         en, es = sp.get("tagline_en", ""), sp.get("tagline_es", "")
         if en and not es:
