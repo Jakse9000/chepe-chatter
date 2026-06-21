@@ -212,12 +212,25 @@ def fetch_sheet_sponsors(csv_url):
     return out
 
 
+def _clean_link(url):
+    """Normalise a website link — people type 'www.x.com' without a scheme,
+    which would otherwise act as a broken relative link. Default to '#'."""
+    url = (url or "").strip()
+    if not url:
+        return "#"
+    if not url.startswith(("http://", "https://")):
+        url = "https://" + url
+    return url
+
+
 def _clean_logo(url):
     """Only accept a logo that is really an image file URL — a stray or broken
     link (e.g. a page or folder) would otherwise wreck the card layout."""
     url = (url or "").strip()
-    if not url.startswith(("http://", "https://")):
+    if not url:
         return ""
+    if not url.startswith(("http://", "https://")):
+        url = "https://" + url
     path = url.split("?")[0].split("#")[0].lower()
     ext = path.rsplit(".", 1)[-1] if "." in path else ""
     return url if ext in ("png", "jpg", "jpeg", "gif", "webp", "svg") else ""
@@ -233,6 +246,7 @@ def build_sponsors(cfg):
     sponsors += fetch_sheet_sponsors(cfg["site"].get("sponsor_sheet_csv", ""))
     for sp in sponsors:
         sp["logo"] = _clean_logo(sp.get("logo", ""))
+        sp["link"] = _clean_link(sp.get("link", ""))
     for sp in sponsors:
         en, es = sp.get("tagline_en", ""), sp.get("tagline_es", "")
         if en and not es:
