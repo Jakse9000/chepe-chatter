@@ -88,6 +88,8 @@
     border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink);width:100%}
   .ad-form textarea{resize:vertical}
   .ad-thanks{font-size:15px;color:var(--green-dark);font-weight:600;padding:6px 0}
+  .ad-thanks .tbtn{margin:8px 0}
+  .ad-price{font-weight:700;color:var(--green-dark);font-size:15px;margin-bottom:12px}
   .ad-form button{align-self:flex-start;background:var(--green);color:#fff;border:0;font-weight:600;
     font-size:14px;padding:11px 20px;border-radius:9px;cursor:pointer;transition:.15s}
   .ad-form button:hover{background:var(--green-dark)}
@@ -235,6 +237,9 @@
   </div>
   <div class="advertise">
     <p data-en="Chepe Chatter reaches newcomers and foreign residents across Costa Rica. Sponsor spots are kept tasteful — one small card per section. Fill in your details below and request a spot; we review every submission before it goes live." data-es="Chepe Chatter llega a recién llegados y residentes extranjeros en toda Costa Rica. Los espacios de patrocinio son discretos — una tarjeta pequeña por sección. Rellena tus datos abajo y solicita un espacio; revisamos cada solicitud antes de publicarla."></p>
+    {% if site.sponsor_price %}
+    <p class="ad-price" data-en="Sponsor spot: {{ site.sponsor_price }}" data-es="Espacio de patrocinio: {{ site.sponsor_price }}">Sponsor spot: {{ site.sponsor_price }}</p>
+    {% endif %}
     {% if site.sponsor_submit_url %}
     <form class="ad-form" id="sponsorForm">
       <input type="text" name="website" class="hide" tabindex="-1" autocomplete="off" aria-hidden="true">
@@ -261,7 +266,16 @@
       <button type="submit" data-en="Request this spot" data-es="Solicitar este espacio">Request this spot</button>
       <p class="ad-note" data-en="We review every request before it goes live — usually within a day. A missing Spanish tagline is translated automatically." data-es="Revisamos cada solicitud antes de publicarla — normalmente en un día. Un eslogan en español que falte se traduce automáticamente.">We review every request before it goes live.</p>
     </form>
-    <p id="adThanks" class="hide ad-thanks" data-en="✅ Thanks! We've received your request and will review it shortly." data-es="✅ ¡Gracias! Hemos recibido tu solicitud y la revisaremos pronto."></p>
+    <div id="adThanks" class="hide ad-thanks">
+      <p data-en="✅ Thanks! We've received your details." data-es="✅ ¡Gracias! Hemos recibido tus datos."></p>
+      {% if site.sponsor_paypal_url %}
+      <p data-en="Final step — pay to activate your spot{% if site.sponsor_price %} ({{ site.sponsor_price }}){% endif %}:" data-es="Último paso — paga para activar tu espacio{% if site.sponsor_price %} ({{ site.sponsor_price }}){% endif %}:"></p>
+      <a class="tbtn" href="{{ site.sponsor_paypal_url }}" target="_blank" rel="noopener" data-en="💳 Pay with PayPal" data-es="💳 Pagar con PayPal">💳 Pay with PayPal</a>
+      <p class="ad-note" data-en="Your spot goes live once we confirm payment." data-es="Tu espacio se activa cuando confirmemos el pago."></p>
+      {% else %}
+      <p data-en="We'll review it shortly and be in touch." data-es="Lo revisaremos pronto y te contactaremos."></p>
+      {% endif %}
+    </div>
     {% else %}
     <p data-en="Interested? Email us and we'll send the options and prices:" data-es="¿Interesado? Escríbenos y te enviamos las opciones y precios:">Interested? Email us and we'll send the options and prices:</p>
     <a class="tbtn" href="mailto:{{ site.advertise_email }}?subject=Sponsor%20enquiry%20-%20Chepe%20Chatter">{{ site.advertise_email }}</a>

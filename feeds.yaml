@@ -36,6 +36,11 @@ site:
   sponsor_sheet_csv: "https://docs.google.com/spreadsheets/d/18rCuY4kzkA3obDLZ24bPJrHRXbkJBeFHwyp4uoB3cK8/gviz/tq?tqx=out:csv&sheet=Sponsors"
   # Fallback if the self-service form isn't set up yet: a simple email link.
   advertise_email: "jaakse@gmail.com"
+  # Fixed-price payment. After a business submits the form, a "Pay with PayPal"
+  # button appears. Get a link at paypal.me (e.g. https://paypal.me/yourname/25)
+  # or use a PayPal hosted-button URL. Leave blank to hide payment.
+  sponsor_price: "$25 / month"
+  sponsor_paypal_url: "https://www.paypal.com/ncp/payment/JZ9VLJ7Z5QH7U"
   # Live-traffic buttons — open Google Maps' traffic layer / Waze (both have
   # real Costa Rica traffic data). Change coordinates to re-centre.
   traffic_map_google: "https://www.google.com/maps/@9.9281,-84.0907,11z/data=!5m1!1e1"
