@@ -176,8 +176,17 @@ def fetch_sheet_sponsors(csv_url):
     """
     if not csv_url:
         return []
+    # Cache-buster: Google serves a cached copy of the same CSV URL for a long
+    # time, which delayed newly-approved sponsors. A unique param + no-cache
+    # headers force a fresh read on every build.
+    sep = "&" if "?" in csv_url else "?"
+    fetch_url = f"{csv_url}{sep}_cb={int(time.time())}"
     try:
-        req = urllib.request.Request(csv_url, headers={"User-Agent": "Chepe Chatter"})
+        req = urllib.request.Request(fetch_url, headers={
+            "User-Agent": "Chepe Chatter",
+            "Cache-Control": "no-cache",
+            "Pragma": "no-cache",
+        })
         with urllib.request.urlopen(req, timeout=20) as r:
             text = r.read().decode("utf-8", "ignore")
     except Exception as e:
