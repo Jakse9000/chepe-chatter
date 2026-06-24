@@ -114,6 +114,37 @@ def parse_item(feed, entry):
     }
 
 
+# A road-closure item is only kept if it's about Costa Rica. The news search
+# occasionally returns closures in other countries (Mexico, Bogotá, …).
+_CR_PLACES = ("costa rica", "san josé", "san jose", "cartago", "heredia",
+              "alajuela", "limón", "limon", "puntarenas", "guanacaste",
+              "circunvalación", "circunvalacion", " ruta ", "ccss", "mopt")
+_FOREIGN = ("méxico", "mexico", "bogotá", "bogota", "colombia", "madrid",
+            "perú ", "peru ", "argentina", "chile", "guatemala", "honduras",
+            "el salvador", "ecuador", "venezuela", "brasil", "brazil")
+
+
+def _cr_traffic_ok(item):
+    t = (item.get("title", "") + " " + item.get("summary", "")).lower()
+    if any(p in t for p in _CR_PLACES):
+        return True
+    if any(f in t for f in _FOREIGN):
+        return False
+    return True            # the feed already targets Costa Rica — default keep
+
+
+def _junk_title(title):
+    """Drop empty Google-News entries like 'The Costa Rica News - The Costa Rica News'."""
+    t = (title or "").strip()
+    if len(t) < 12:
+        return True
+    if " - " in t:
+        head, _, src = t.rpartition(" - ")
+        if head.strip().lower() == src.strip().lower():
+            return True
+    return False
+
+
 def classify_items(items):
     """
     Assign each item a 'stream' and 'relevant' flag.
@@ -131,14 +162,23 @@ def classify_items(items):
         feed = it["_feed"]
         fs = feed.get("stream")
         if fs == "traffic":
-            it["stream"], it["relevant"] = "traffic", True
+            it["stream"] = "traffic"
+            it["relevant"] = _cr_traffic_ok(it)   # drop foreign road closures
             continue
         if fs == "world":
-            # International coverage keeps its stream; the AI judges relevance
-            # (keyword fallback can't judge international items, so show them).
-            it["stream"] = "world"
-            it["relevant"] = ai_results[ji][1] if ai_results is not None else True
-            ji += 1
+            # International coverage stays in world, but anything the AI sees as
+            # sport (e.g. a surfing event) moves to the Sports section, and the
+            # AI also judges relevance (keyword fallback can't, so it shows them).
+            if ai_results is not None:
+                ai_stream, ai_rel = ai_results[ji]
+                ji += 1
+                if ai_stream == "sports":
+                    it["stream"], it["relevant"] = "sports", True
+                else:
+                    it["stream"], it["relevant"] = "world", ai_rel
+            else:
+                it["stream"], it["relevant"] = "world", True
+                ji += 1
             continue
         # Local feeds: AI picks stream + relevance; trusted expat sources kept.
         if ai_results is not None:
@@ -308,7 +348,10 @@ def main():
         if link and link in seen:
             continue
         seen.add(link)
-        parsed.append(parse_item(feed, entry))
+        it = parse_item(feed, entry)
+        if _junk_title(it["title"]):
+            continue
+        parsed.append(it)
 
     print("Classifying…")
     engine = classify_items(parsed)
@@ -316,6 +359,8 @@ def main():
 
     buckets = {"world": [], "living": [], "sports": [], "traffic": []}
     for it in parsed:
+        if it["stream"] == "traffic" and not it["relevant"]:
+            continue                       # foreign road closure — drop it
         buckets[it["stream"]].append(it)
 
     # newest first, cap per stream, THEN translate only what we keep
