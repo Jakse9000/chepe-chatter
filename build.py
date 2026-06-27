@@ -312,7 +312,11 @@ def build_sponsors(cfg):
     for sec in ("world", "living", "sports", "traffic", "events"):
         matches = [sp for sp in sponsors
                    if sec in sp.get("sections", []) or "all" in sp.get("sections", [])]
-        by_section[sec] = matches[rot % len(matches)] if matches else None
+        # Real (paying) sponsors take priority — a placeholder "spot available"
+        # card only shows when the section has NO real sponsor.
+        real = [sp for sp in matches if not sp.get("placeholder")]
+        pool = real if real else matches
+        by_section[sec] = pool[rot % len(pool)] if pool else None
     return by_section
 
 
