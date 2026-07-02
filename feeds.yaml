@@ -22,7 +22,7 @@ site:
   domain: "chepe-chatter.news"
   # Full public address — used for SEO (canonical link, social-media preview
   # tags, robots.txt and sitemap.xml are all generated from it).
-  url: "https://www.chepe-chatter.news"
+  url: "https://chepe-chatter.news"
   tagline_en: "Costa Rica news & culture"
   tagline_es: "Noticias y cultura de Costa Rica"
   max_items_per_stream: 9

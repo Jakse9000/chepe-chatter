@@ -223,7 +223,7 @@ to pass Google's review.
 
 Every build also generates `robots.txt` and `sitemap.xml` for search engines,
 and the page carries the meta tags social media and Google expect — all based
-on the `url:` line in `feeds.yaml` (https://www.chepe-chatter.news).
+on the `url:` line in `feeds.yaml` (https://chepe-chatter.news).
 
 Stories also stay on the site for up to **48 hours** after their source feed
 drops them (a small rolling archive), so the page doesn't "flicker" between
