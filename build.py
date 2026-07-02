@@ -15,8 +15,10 @@ You normally never edit this file. To change sources, edit feeds.yaml.
 """
 
 import io
+import re
 import csv
 import sys
+import json
 import time
 import html
 import urllib.request
@@ -49,10 +51,21 @@ STREAM_DEFS = [
 
 def clean(text):
     """Strip HTML tags and tidy whitespace from a feed summary."""
-    import re
     text = re.sub(r"<[^>]+>", "", text or "")
     text = html.unescape(text)
     return re.sub(r"\s+", " ", text).strip()
+
+
+def age_from_dt(ts):
+    """Turn a datetime into a short '2h' / '3d' badge."""
+    secs = max((NOW - ts).total_seconds(), 0)
+    if secs > 30 * 86400:            # ancient / unknown date — show nothing
+        return ""
+    if secs < 3600:
+        return f"{int(secs // 60)}m"
+    if secs < 86400:
+        return f"{int(secs // 3600)}h"
+    return f"{int(secs // 86400)}d"
 
 
 def age_label(published):
@@ -63,13 +76,7 @@ def age_label(published):
         ts = dt.datetime(*published[:6], tzinfo=dt.timezone.utc)
     except Exception:
         return ""
-    delta = NOW - ts
-    secs = delta.total_seconds()
-    if secs < 3600:
-        return f"{int(secs // 60)}m"
-    if secs < 86400:
-        return f"{int(secs // 3600)}h"
-    return f"{int(secs // 86400)}d"
+    return age_from_dt(ts)
 
 
 def sort_key(published):
@@ -79,12 +86,20 @@ def sort_key(published):
         return dt.datetime(1970, 1, 1, tzinfo=dt.timezone.utc)
 
 
+def _fetch_url(url, timeout=20):
+    """Download a feed with a hard timeout — feedparser has none by default,
+    so one hanging server could otherwise stall the whole hourly build."""
+    req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 (Chepe Chatter)"})
+    with urllib.request.urlopen(req, timeout=timeout) as r:
+        return r.read()
+
+
 def fetch_all(feeds):
     raw = []
     for feed in feeds:
         print(f" → {feed['name']}")
         try:
-            parsed = feedparser.parse(feed["url"])
+            parsed = feedparser.parse(_fetch_url(feed["url"]))
             if parsed.bozo and not parsed.entries:
                 print(f"   ⚠ could not read feed, skipping")
                 continue
@@ -131,6 +146,16 @@ def _cr_traffic_ok(item):
     if any(f in t for f in _FOREIGN):
         return False
     return True            # the feed already targets Costa Rica — default keep
+
+
+def _norm_title(title):
+    """Normalise a title for cross-source duplicate detection: drop a trailing
+    ' - Source' suffix (Google News adds one), punctuation and case."""
+    t = (title or "").strip()
+    if " - " in t:
+        t = t.rpartition(" - ")[0]
+    t = re.sub(r"[^\w\s]", "", t.lower(), flags=re.UNICODE)
+    return re.sub(r"\s+", " ", t).strip()[:60]
 
 
 def _junk_title(title):
@@ -191,6 +216,74 @@ def classify_items(items):
         ji += 1
 
     return "Claude AI" if ai_results is not None else "keyword rules"
+
+
+# ---- Rolling archive ---------------------------------------------------
+# Stories stay on the site for up to ARCHIVE_HOURS after their feed drops
+# them (feeds only hold ~20 items), and they rescue the site if every feed
+# is briefly unreachable. Persisted between builds via the workflow cache.
+ARCHIVE_FILE = ROOT / ".archive.json"
+ARCHIVE_HOURS = 48
+
+
+def load_archive():
+    """Load archived items, dropping anything not seen for ARCHIVE_HOURS."""
+    try:
+        data = json.loads(ARCHIVE_FILE.read_text(encoding="utf-8"))
+    except Exception:
+        return {}
+    cutoff = NOW - dt.timedelta(hours=ARCHIVE_HOURS)
+    out = {}
+    for url, rec in data.items():
+        try:
+            if dt.datetime.fromisoformat(rec["archived"]) >= cutoff:
+                out[url] = rec
+        except Exception:
+            continue
+    return out
+
+
+def merge_archive(buckets, caps):
+    """Archive everything currently shown, bring back recently-seen items
+    that vanished from their feeds, then re-sort and re-cap each bucket."""
+    archive = load_archive()
+
+    current = set()
+    for k in buckets:
+        for it in buckets[k]:
+            current.add(it["url"])
+            rec = {kk: vv for kk, vv in it.items() if kk != "_sort"}
+            rec["_sort"] = it["_sort"].isoformat()
+            rec["archived"] = NOW.isoformat()      # last seen in a feed
+            archive[it["url"]] = rec
+
+    restored = 0
+    for url, rec in archive.items():
+        if url in current:
+            continue
+        it = dict(rec)
+        it.pop("archived", None)
+        try:
+            it["_sort"] = dt.datetime.fromisoformat(it["_sort"])
+        except Exception:
+            it["_sort"] = dt.datetime(1970, 1, 1, tzinfo=dt.timezone.utc)
+        it["age"] = age_from_dt(it["_sort"])
+        bucket = buckets.get(it.get("stream"))
+        if bucket is not None:
+            bucket.append(it)
+            restored += 1
+
+    for k in buckets:
+        buckets[k].sort(key=lambda x: x["_sort"], reverse=True)
+        buckets[k] = buckets[k][:caps[k]]
+
+    if restored:
+        print(f"  + {restored} recent stor{'y' if restored == 1 else 'ies'} kept from the 48h archive")
+    try:
+        ARCHIVE_FILE.write_text(json.dumps(archive, ensure_ascii=False, default=str),
+                                encoding="utf-8")
+    except Exception:
+        pass
 
 
 def translate_item(it, cfg):
@@ -347,6 +440,7 @@ def main():
 
     parsed = []
     seen = set()
+    seen_titles = set()
     for feed, entry in raw:
         link = entry.get("link", "")
         if link and link in seen:
@@ -355,6 +449,11 @@ def main():
         it = parse_item(feed, entry)
         if _junk_title(it["title"]):
             continue
+        # Same story picked up by two sources? Keep only the first copy.
+        nt = _norm_title(it["title"])
+        if nt and nt in seen_titles:
+            continue
+        seen_titles.add(nt)
         parsed.append(it)
 
     print("Classifying…")
@@ -369,14 +468,24 @@ def main():
 
     # newest first, cap per stream, THEN translate only what we keep
     max_traffic = cfg["site"].get("max_traffic", 6)
+    caps = {k: (max_traffic if k == "traffic" else limit + 4) for k in buckets}
     for k in buckets:
         buckets[k].sort(key=lambda x: x["_sort"], reverse=True)
         # keep a few extra hidden items so "show everything" has content
-        cap = max_traffic if k == "traffic" else limit + 4
-        buckets[k] = buckets[k][:cap]
+        buckets[k] = buckets[k][:caps[k]]
         for it in buckets[k]:
             it.pop("_feed", None)
             translate_item(it, cfg)
+
+    # Bring back recently-seen stories whose feed dropped them (48h archive).
+    merge_archive(buckets, caps)
+
+    # Safety net: never deploy an EMPTY site. If every feed failed and the
+    # archive is empty too, abort — GitHub keeps the previous version live.
+    if not any(buckets.values()):
+        print("✖ No stories at all (all feeds down?) — aborting so the "
+              "previous site stays up.")
+        sys.exit(1)
 
     streams = []
     for sid, icon, t_en, t_es, s_en, s_es in STREAM_DEFS:
@@ -421,6 +530,22 @@ def main():
 
     OUT.mkdir(exist_ok=True)
     (OUT / "index.html").write_text(htmlout, encoding="utf-8")
+
+    # SEO helpers: robots.txt + sitemap.xml (uses site.url from feeds.yaml).
+    site_url = (cfg["site"].get("url") or "").rstrip("/")
+    if site_url:
+        (OUT / "robots.txt").write_text(
+            f"User-agent: *\nAllow: /\n\nSitemap: {site_url}/sitemap.xml\n",
+            encoding="utf-8")
+        (OUT / "sitemap.xml").write_text(
+            '<?xml version="1.0" encoding="UTF-8"?>\n'
+            '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+            f"  <url><loc>{site_url}/</loc>"
+            f"<lastmod>{NOW.strftime('%Y-%m-%d')}</lastmod>"
+            "<changefreq>hourly</changefreq></url>\n"
+            "</urlset>\n",
+            encoding="utf-8")
+
     counts = ", ".join(f"{k}:{len(v)}" for k, v in buckets.items())
     print(f"✅ Built site/index.html  ({counts}, events:{len(events)})")
 

@@ -9,3 +9,4 @@ site/
 # Caches are handled by GitHub's cache, not the repo
 .translation_cache.json
 .classify_cache.json
+.archive.json

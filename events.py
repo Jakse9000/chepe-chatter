@@ -17,6 +17,7 @@ site never ends up with an empty calendar.
 import re
 import json
 import datetime as dt
+from zoneinfo import ZoneInfo
 from urllib.request import Request, urlopen
 
 GAM_URL = "https://www.gamcultural.com/cr"
@@ -57,7 +58,9 @@ def collect_events(limit=8):
         except Exception:
             continue
 
-    today = dt.date.today()
+    # GitHub's servers run on UTC — up to 6 hours ahead of Costa Rica — so
+    # "today" must be computed in local time or events would vanish at 6 pm.
+    today = dt.datetime.now(ZoneInfo("America/Costa_Rica")).date()
     out, seen = [], set()
     for e in nodes:
         try:

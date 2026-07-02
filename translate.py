@@ -16,11 +16,16 @@ import os
 import json
 import time
 import hashlib
+import datetime as dt
 import urllib.request
 import urllib.error
 from pathlib import Path
 
 CACHE_FILE = Path(__file__).parent / ".translation_cache.json"
+# Cached translations unused for this many days are pruned, so the cache
+# file can't grow forever (headlines rarely come back after a month).
+CACHE_MAX_AGE_DAYS = 30
+_TODAY = dt.date.today().isoformat()
 
 # Which engine is active this run. Included in the cache key so that switching
 # from Google to DeepL (or back) re-translates instead of reusing old results.
@@ -30,15 +35,31 @@ ENGINE = "deepl" if os.environ.get("DEEPL_API_KEY") else "google"
 # failed translations as the untranslated original).
 CACHE_VERSION = "v3"
 
-try:
-    _cache = json.loads(CACHE_FILE.read_text(encoding="utf-8"))
-except Exception:
-    _cache = {}
+def _load_cache():
+    """Load the cache, migrating old plain-string entries to the new
+    [text, last_used] format so pruning can work."""
+    try:
+        raw = json.loads(CACHE_FILE.read_text(encoding="utf-8"))
+    except Exception:
+        return {}
+    out = {}
+    for k, v in raw.items():
+        if isinstance(v, str):
+            v = [v, _TODAY]
+        if isinstance(v, list) and len(v) == 2:
+            out[k] = v
+    return out
+
+
+_cache = _load_cache()
 
 
 def _save_cache():
+    """Persist the cache, dropping entries not used for CACHE_MAX_AGE_DAYS."""
+    cutoff = (dt.date.today() - dt.timedelta(days=CACHE_MAX_AGE_DAYS)).isoformat()
+    pruned = {k: v for k, v in _cache.items() if v[1] >= cutoff}
     try:
-        CACHE_FILE.write_text(json.dumps(_cache, ensure_ascii=False), encoding="utf-8")
+        CACHE_FILE.write_text(json.dumps(pruned, ensure_ascii=False), encoding="utf-8")
     except Exception:
         pass
 
@@ -97,7 +118,8 @@ def translate(text, src, tgt):
 
     ck = _key(text, src, tgt)
     if ck in _cache:
-        return _cache[ck]
+        _cache[ck][1] = _TODAY               # mark as recently used
+        return _cache[ck][0]
 
     # Try up to 3 times — DeepL's free tier rate-limits bursts with a 429,
     # which a short backoff usually clears.
@@ -106,7 +128,7 @@ def translate(text, src, tgt):
         try:
             out = _do_translate(text, src, tgt)
             if out:
-                _cache[ck] = out          # cache ONLY successful translations
+                _cache[ck] = [out, _TODAY]   # cache ONLY successful translations
                 if len(_cache) % 10 == 0:
                     _save_cache()
                 return out

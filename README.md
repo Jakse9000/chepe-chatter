@@ -219,6 +219,17 @@ flips `approved` to `TRUE` once someone pays. Ask to add this when you're ready.
 Google AdSense is possible later too, but needs original content on the site first
 to pass Google's review.
 
+## Built-in extras (nothing to set up)
+
+Every build also generates `robots.txt` and `sitemap.xml` for search engines,
+and the page carries the meta tags social media and Google expect — all based
+on the `url:` line in `feeds.yaml` (https://www.chepe-chatter.news).
+
+Stories also stay on the site for up to **48 hours** after their source feed
+drops them (a small rolling archive), so the page doesn't "flicker" between
+hourly builds — and if every feed is briefly down, the previous stories stay
+up instead of the site going empty.
+
 ## Weather
 
 The header shows San José's current weather, fetched free from Open-Meteo (no key)

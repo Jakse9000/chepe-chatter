@@ -18,6 +18,19 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>{{ site.name }} — Costa Rica news for newcomers</title>
+<meta name="description" content="{{ site.name }}: Costa Rica news, road closures, weather and cultural events — curated and translated for foreigners living here. Updated hourly.">
+{% if site.url %}
+<link rel="canonical" href="{{ site.url }}/">
+<meta property="og:type" content="website">
+<meta property="og:url" content="{{ site.url }}/">
+<meta property="og:site_name" content="{{ site.name }}">
+<meta property="og:title" content="{{ site.name }} — Costa Rica news for newcomers">
+<meta property="og:description" content="Costa Rica news, road closures, weather and cultural events — curated and translated for foreigners living here. Updated hourly.">
+<meta property="og:locale" content="en_US">
+<meta property="og:locale:alternate" content="es_CR">
+<meta name="twitter:card" content="summary">
+{% endif %}
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='48' fill='%23f5b301'/%3E%3Ctext x='50' y='68' font-size='52' text-anchor='middle'%3E%F0%9F%8C%B4%3C/text%3E%3C/svg%3E">
 <style>
   :root{
     --green:#0a7d52; --green-dark:#075c3c; --sun:#f5b301; --sea:#1481ba;
@@ -295,7 +308,9 @@
     document.getElementById('btn-es').classList.toggle('active', lang==='es');
     document.querySelectorAll('[data-en]').forEach(function(el){
       var val = el.getAttribute('data-'+lang);
-      if(val!=null) el.innerHTML = val;
+      // textContent (NOT innerHTML): feed headlines are untrusted text and
+      // must never be parsed as HTML — prevents script injection.
+      if(val!=null) el.textContent = val;
     });
     document.querySelectorAll('[data-ph-en]').forEach(function(el){
       var val = el.getAttribute('data-ph-'+lang);

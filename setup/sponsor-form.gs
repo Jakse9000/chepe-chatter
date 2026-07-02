@@ -44,8 +44,19 @@ function doPost(e) {
       'FALSE'              // you flip this to TRUE to publish
     ]);
 
-    // Optional: email yourself when a new request arrives.
-    // MailApp.sendEmail('jaakse@gmail.com', 'New sponsor request', JSON.stringify(p));
+    // Email yourself when a new request arrives, so you never miss one.
+    MailApp.sendEmail(
+      'jaakse@gmail.com',
+      'New sponsor request: ' + _clean(p.company),
+      'A new sponsor request arrived on Chepe Chatter.\n\n' +
+      'Company:  ' + _clean(p.company) + '\n' +
+      'Email:    ' + _clean(p.email) + '\n' +
+      'Website:  ' + _clean(p.link) + '\n' +
+      'Section:  ' + _clean(p.section) + '\n' +
+      'Tagline:  ' + _clean(p.tagline_en) + '\n\n' +
+      'Open the Sponsors sheet and set its "approved" cell to TRUE to publish it:\n' +
+      'https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/edit'
+    );
 
     return _json({ success: true });
   } catch (err) {

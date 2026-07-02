@@ -22,21 +22,43 @@ Model can be overridden with the CLASSIFIER_MODEL environment variable.
 
 import os
 import json
+import time
 import hashlib
+import datetime as dt
 import urllib.request
 from pathlib import Path
 
 API_URL = "https://api.anthropic.com/v1/messages"
 MODEL = os.environ.get("CLASSIFIER_MODEL", "claude-haiku-4-5-20251001")
-BATCH = 20
+# 15 per call keeps the JSON reply comfortably inside max_tokens.
+BATCH = 15
+MAX_TOKENS = 2000
 # Bump this whenever the prompt changes — it invalidates old cached verdicts.
 PROMPT_VERSION = "v2"
+# Cached verdicts unused for this many days are pruned (headlines rarely return).
+CACHE_MAX_AGE_DAYS = 30
 
 CACHE_FILE = Path(__file__).parent / ".classify_cache.json"
-try:
-    _cache = json.loads(CACHE_FILE.read_text(encoding="utf-8"))
-except Exception:
-    _cache = {}
+_TODAY = dt.date.today().isoformat()
+
+
+def _load_cache():
+    """Load the cache, migrating old [stream, relevant] entries to the new
+    [stream, relevant, last_used] format so pruning can work."""
+    try:
+        raw = json.loads(CACHE_FILE.read_text(encoding="utf-8"))
+    except Exception:
+        return {}
+    out = {}
+    for k, v in raw.items():
+        if isinstance(v, list) and len(v) == 2:
+            v = [v[0], v[1], _TODAY]
+        if isinstance(v, list) and len(v) == 3:
+            out[k] = v
+    return out
+
+
+_cache = _load_cache()
 
 INSTRUCTIONS = (
     "You sort Costa Rican news for an audience of FOREIGNERS LIVING IN "
@@ -65,8 +87,11 @@ def available():
 
 
 def _save_cache():
+    """Persist the cache, dropping entries not used for CACHE_MAX_AGE_DAYS."""
+    cutoff = (dt.date.today() - dt.timedelta(days=CACHE_MAX_AGE_DAYS)).isoformat()
+    pruned = {k: v for k, v in _cache.items() if v[2] >= cutoff}
     try:
-        CACHE_FILE.write_text(json.dumps(_cache, ensure_ascii=False), encoding="utf-8")
+        CACHE_FILE.write_text(json.dumps(pruned, ensure_ascii=False), encoding="utf-8")
     except Exception:
         pass
 
@@ -85,7 +110,7 @@ def _call(api_key, articles):
 
     body = {
         "model": MODEL,
-        "max_tokens": 1500,
+        "max_tokens": MAX_TOKENS,
         "messages": [{"role": "user", "content": prompt}],
     }
     req = urllib.request.Request(
@@ -122,7 +147,8 @@ def classify_batch(items):
     for i, it in enumerate(items):
         ck = _key(it)
         if ck in _cache:
-            results[i] = tuple(_cache[ck])
+            _cache[ck][2] = _TODAY            # mark as recently used
+            results[i] = (_cache[ck][0], _cache[ck][1])
         else:
             todo.append(i)
 
@@ -130,7 +156,16 @@ def classify_batch(items):
         for b in range(0, len(todo), BATCH):
             chunk = todo[b:b + BATCH]
             articles = [(j, items[j]["title"][:200], items[j]["summary"][:300]) for j in chunk]
-            arr = _call(api_key, articles)
+            # One transient API hiccup shouldn't sink the whole AI run:
+            # retry each batch once before giving up.
+            for attempt in range(2):
+                try:
+                    arr = _call(api_key, articles)
+                    break
+                except Exception:
+                    if attempt == 1:
+                        raise
+                    time.sleep(2)
             by_i = {int(o.get("i", -1)): o for o in arr}
             for j in chunk:
                 o = by_i.get(j, {})
@@ -141,7 +176,7 @@ def classify_batch(items):
                 if stream == "sports":
                     relevant = True            # sports has its own home
                 results[j] = (stream, relevant)
-                _cache[_key(items[j])] = [stream, relevant]
+                _cache[_key(items[j])] = [stream, relevant, _TODAY]
         _save_cache()
     except Exception as e:
         print(f"   ⚠ AI classifier failed, using keyword fallback: {e}")

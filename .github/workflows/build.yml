@@ -34,13 +34,15 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      # Re-use saved translations + AI verdicts between runs (faster, cheaper)
+      # Re-use saved translations, AI verdicts and the 48h story archive
+      # between runs (faster, cheaper, and stories survive feed hiccups)
       - name: Restore caches
         uses: actions/cache@v4
         with:
           path: |
             .translation_cache.json
             .classify_cache.json
+            .archive.json
           key: caches-${{ github.run_id }}
           restore-keys: caches-
 
