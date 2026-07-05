@@ -152,17 +152,11 @@ events:
 # invites businesses to book (it links to the booking form). Remove the flag
 # and fill in real details once a sponsor signs up.
 sponsors:
-  - name: "Valley Relocation Co."
+  # One placeholder assigned to ALL sections: every section without a real
+  # (approved) sponsor shows an "this spot is available — book it" card.
+  # As real sponsors sign up, they take over their section automatically.
+  - name: "Available spot"
     placeholder: true
-    tagline_en: "Residency, banking & moving help for newcomers."
-    tagline_es: "Ayuda con residencia, bancos y mudanzas para recién llegados."
     logo: ""
-    link: "https://example.com"
-    sections: ["living"]
-  - name: "Pura Vida Spanish School"
-    placeholder: true
-    tagline_en: "Learn Spanish in the heart of San José."
-    tagline_es: "Aprende español en el corazón de San José."
-    logo: ""
-    link: "https://example.com"
-    sections: ["events", "world"]
+    link: ""
+    sections: ["all"]
