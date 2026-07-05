@@ -34,7 +34,7 @@ MODEL = os.environ.get("CLASSIFIER_MODEL", "claude-haiku-4-5-20251001")
 BATCH = 15
 MAX_TOKENS = 2000
 # Bump this whenever the prompt changes — it invalidates old cached verdicts.
-PROMPT_VERSION = "v2"
+PROMPT_VERSION = "v3"
 # Cached verdicts unused for this many days are pruned (headlines rarely return).
 CACHE_MAX_AGE_DAYS = 30
 
@@ -65,7 +65,9 @@ INSTRUCTIONS = (
     "Costa Rica (expats, residents, newcomers) who read in English.\n"
     "For each article decide two things:\n"
     '  "stream": "sports" if it is primarily about sport, athletes, teams or '
-    'competitions; otherwise "living".\n'
+    'competitions; "business" if it is primarily about the economy, companies, '
+    "investment, real estate, employment, banking, markets, trade or the "
+    'tourism industry; otherwise "living".\n'
     '  "relevant": true if a foreigner living in Costa Rica would plausibly '
     "want to read it. Be reasonably INCLUSIVE. This covers:\n"
     "    - practical life: immigration/residency, cost of living, healthcare and "
@@ -78,7 +80,7 @@ INSTRUCTIONS = (
     "horoscopes, generic lifestyle or self-help filler, clickbait, hyper-local "
     "notices with no wider interest, and routine minor crime blotter.\n"
     "Return ONLY a JSON array, one object per article, no markdown, no prose:\n"
-    '[{"i": <index>, "stream": "living|sports", "relevant": true|false}, ...]'
+    '[{"i": <index>, "stream": "living|business|sports", "relevant": true|false}, ...]'
 )
 
 
@@ -170,7 +172,7 @@ def classify_batch(items):
             for j in chunk:
                 o = by_i.get(j, {})
                 stream = o.get("stream", "living")
-                if stream not in ("living", "sports"):
+                if stream not in ("living", "business", "sports"):
                     stream = "living"
                 relevant = bool(o.get("relevant", False))
                 if stream == "sports":

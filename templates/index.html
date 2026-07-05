@@ -7,7 +7,7 @@
 {% else %}
 <a class="sponsor" href="{{ sp.link }}" target="_blank" rel="noopener sponsored">
   <span class="pill" data-en="Supported by" data-es="Con apoyo de">Supported by</span>
-  {% if sp.logo %}<img class="sponsor-logo" src="{{ sp.logo }}" alt="{{ sp.name }}" loading="lazy">{% endif %}
+  {% if sp.logo %}<img class="sponsor-logo" src="{{ sp.logo }}" alt="{{ sp.name }}" loading="lazy" onerror="this.remove()">{% endif %}
   <span class="sponsor-text"><b>{{ sp.name }}</b> <span data-en="— {{ sp.tagline_en }}" data-es="— {{ sp.tagline_es }}">— {{ sp.tagline_en }}</span></span>
 </a>
 {% endif %}
@@ -268,6 +268,7 @@
         <option value="" data-en="Choose a section…" data-es="Elige una sección…">Choose a section…</option>
         <option value="living" data-en="Living here" data-es="Vivir aquí">Living here</option>
         <option value="world" data-en="Costa Rica in the world" data-es="Costa Rica en el mundo">Costa Rica in the world</option>
+        <option value="business" data-en="Business" data-es="Negocios">Business</option>
         <option value="sports" data-en="Sports" data-es="Deportes">Sports</option>
         <option value="traffic" data-en="Traffic &amp; roads" data-es="Tráfico y carreteras">Traffic &amp; roads</option>
         <option value="events" data-en="What's on" data-es="Agenda cultural">What's on</option>

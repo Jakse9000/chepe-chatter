@@ -44,6 +44,8 @@ STREAM_DEFS = [
      "International coverage about Costa Rica", "Cobertura internacional sobre Costa Rica"),
     ("living", "🏡", "Living here", "Vivir aquí",
      "Local news that matters if you're a foreigner", "Noticias locales que importan si eres extranjero"),
+    ("business", "💼", "Business", "Negocios",
+     "Economy, companies & money in Costa Rica", "Economía, empresas y dinero en Costa Rica"),
     ("sports", "⚽", "Sports", "Deportes",
      "Because the game brings everyone together", "Porque el deporte nos une a todos"),
 ]
@@ -191,14 +193,16 @@ def classify_items(items):
             it["relevant"] = _cr_traffic_ok(it)   # drop foreign road closures
             continue
         if fs == "world":
-            # International coverage stays in world, but anything the AI sees as
-            # sport (e.g. a surfing event) moves to the Sports section, and the
-            # AI also judges relevance (keyword fallback can't, so it shows them).
+            # International coverage stays in world, but anything the AI sees
+            # as sport or business moves to its own section, and the AI also
+            # judges relevance (keyword fallback can't, so it shows them).
             if ai_results is not None:
                 ai_stream, ai_rel = ai_results[ji]
                 ji += 1
                 if ai_stream == "sports":
                     it["stream"], it["relevant"] = "sports", True
+                elif ai_stream == "business":
+                    it["stream"], it["relevant"] = "business", ai_rel
                 else:
                     it["stream"], it["relevant"] = "world", ai_rel
             else:
@@ -365,6 +369,12 @@ def _clean_link(url):
     return url
 
 
+# Image hosts whose links are signed and expire (or block other websites
+# from embedding them). A logo from these WILL break within days/weeks, so
+# we reject it up front — better no logo than a broken one.
+_BAD_LOGO_HOSTS = ("fbcdn.net", "fbsbx.com", "cdninstagram.com", "licdn.com")
+
+
 def _clean_logo(url):
     """Only accept a logo that is really an image file URL — a stray or broken
     link (e.g. a page or folder) would otherwise wreck the card layout."""
@@ -373,6 +383,9 @@ def _clean_logo(url):
         return ""
     if not url.startswith(("http://", "https://")):
         url = "https://" + url
+    host = url.split("/")[2].lower() if url.count("/") >= 2 else ""
+    if any(bad in host for bad in _BAD_LOGO_HOSTS):
+        return ""                    # e.g. Facebook photo links — they expire
     path = url.split("?")[0].split("#")[0].lower()
     ext = path.rsplit(".", 1)[-1] if "." in path else ""
     return url if ext in ("png", "jpg", "jpeg", "gif", "webp", "svg") else ""
@@ -402,7 +415,7 @@ def build_sponsors(cfg):
 
     rot = int(NOW.timestamp() // 3600)          # advances once per hour
     by_section = {}
-    for sec in ("world", "living", "sports", "traffic", "events"):
+    for sec in ("world", "living", "business", "sports", "traffic", "events"):
         matches = [sp for sp in sponsors
                    if sec in sp.get("sections", []) or "all" in sp.get("sections", [])]
         # Real (paying) sponsors take priority — a placeholder "spot available"
@@ -460,7 +473,7 @@ def main():
     engine = classify_items(parsed)
     print(f"  sorted {len(parsed)} stories via {engine}")
 
-    buckets = {"world": [], "living": [], "sports": [], "traffic": []}
+    buckets = {"world": [], "living": [], "business": [], "sports": [], "traffic": []}
     for it in parsed:
         if it["stream"] == "traffic" and not it["relevant"]:
             continue                       # foreign road closure — drop it

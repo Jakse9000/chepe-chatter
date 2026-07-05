@@ -169,8 +169,8 @@ The free engine is good. DeepL is better for Spanish. To switch:
 
 Sponsors are managed in the `sponsors:` list at the bottom of `feeds.yaml` — no
 coding. Each sponsor shows as a small "Supported by" card at the foot of the
-section(s) you assign it to (`world`, `living`, `sports`, `traffic`, `events`, or
-`["all"]`). Give a `name`, a short `tagline_en` and/or `tagline_es` (a missing one
+section(s) you assign it to (`world`, `living`, `business`, `sports`, `traffic`,
+`events`, or `["all"]`). Give a `name`, a short `tagline_en` and/or `tagline_es` (a missing one
 is auto-translated), an optional `logo` image URL, and a `link`.
 
 Assign several sponsors to the same section and they rotate automatically between

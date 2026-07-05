@@ -9,7 +9,7 @@
 #   lang:   "es" or "en"  (the language the feed is written in)
 #   stream: where its stories go by default —
 #             world  = Costa Rica in the world (international)
-#             local  = Living here / Sports (auto-sorted by keywords)
+#             local  = Living here / Business / Sports (auto-sorted)
 #   trust:  optional. If true, items are always shown even if the
 #           relevance filter can't find foreigner keywords.
 #
@@ -147,7 +147,7 @@ events:
 #   logo:        optional URL to a small logo image ("" for none)
 #   link:        where the card links to
 #   sections:    which sections it appears in — any of:
-#                world, living, sports, traffic, events  (or ["all"])
+#                world, living, business, sports, traffic, events  (or ["all"])
 # Set `placeholder: true` on a sponsor to show an "available slot" card that
 # invites businesses to book (it links to the booking form). Remove the flag
 # and fill in real details once a sponsor signs up.

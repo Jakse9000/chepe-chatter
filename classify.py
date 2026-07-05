@@ -37,6 +37,21 @@ RELEVANT_KEYWORDS = [
     "frontera", "airport", "flight", "flights", "tourism", "border",
 ]
 
+# Words that route a local story into the BUSINESS stream (headline only).
+BUSINESS_KEYWORDS = [
+    "economía", "economia", "económico", "economico", "económica", "economica",
+    "empresa", "empresas", "empresario", "empresarios", "negocio", "negocios",
+    "inversión", "inversion", "inversiones", "inversionista", "inversionistas",
+    "exportación", "exportacion", "exportaciones", "importación", "importacion",
+    "empleo", "empleos", "desempleo", "pib", "inflación", "inflacion",
+    "banco central", "bccr", "tipo de cambio", "mercado", "mercados",
+    "bolsa", "comercio", "industria", "zona franca", "zonas francas",
+    "economy", "economic", "business", "businesses", "company", "companies",
+    "investment", "investors", "exports", "imports", "jobs", "employment",
+    "unemployment", "inflation", "gdp", "market", "markets", "trade",
+    "startup", "startups", "real estate", "free trade zone",
+]
+
 # Words that route a local story into the SPORTS stream.
 # Curated to avoid ambiguous tokens (dropped: "liga", "partido", "juegos",
 # "gol" kept only as exact word, etc.).
@@ -72,7 +87,7 @@ def _has(text, words):
 def classify(item, feed):
     """
     Returns (stream, relevant) where stream is one of:
-        'world', 'living', 'sports'
+        'world', 'living', 'business', 'sports'
     and relevant is True/False (False = hidden by the default filter).
     """
     title = item.get("title", "")
@@ -82,10 +97,12 @@ def classify(item, feed):
     if feed.get("stream") == "world":
         return "world", True
 
-    # Sports is judged on the HEADLINE only — precise, avoids false
-    # positives from a sports word buried in a finance/health summary.
+    # Sports and business are judged on the HEADLINE only — precise, avoids
+    # false positives from a stray word buried in an unrelated summary.
     if _has(title, SPORTS_KEYWORDS):
         return "sports", True   # sports has its own home, always shown
+    if _has(title, BUSINESS_KEYWORDS):
+        return "business", True
 
     # Relevance uses the fuller title+summary text for better recall.
     relevant = feed.get("trust", False) or _has(text, RELEVANT_KEYWORDS)
