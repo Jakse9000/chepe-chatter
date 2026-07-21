@@ -291,17 +291,30 @@ def merge_archive(buckets, caps):
 
 
 def translate_item(it, cfg):
-    """Fill in both languages for an item we've decided to keep."""
+    """Fill in both languages for an item we've decided to keep.
+
+    Sets it['translated'] to whether the cross-language copy is a REAL
+    translation, so the template can label the card honestly instead of
+    always claiming 'Translated from ES'.
+    """
     do = it["relevant"] or cfg["site"].get("translate_hidden", False)
     title, summary = it["title"], it["summary"]
     if it["origin"] == "es":
         it["title_es"], it["summary_es"] = title, summary
-        it["title_en"] = T.translate(title, "es", "en") if do else title
-        it["summary_en"] = T.translate(summary, "es", "en") if do else summary
+        if do:
+            it["title_en"], ok = T.translate_flagged(title, "es", "en")
+            it["summary_en"], _ = T.translate_flagged(summary, "es", "en")
+        else:
+            it["title_en"], it["summary_en"], ok = title, summary, False
+        it["translated"] = ok            # did the headline really become English?
     else:
         it["title_en"], it["summary_en"] = title, summary
-        it["title_es"] = T.translate(title, "en", "es") if do else title
-        it["summary_es"] = T.translate(summary, "en", "es") if do else summary
+        if do:
+            it["title_es"], ok = T.translate_flagged(title, "en", "es")
+            it["summary_es"], _ = T.translate_flagged(summary, "en", "es")
+        else:
+            it["title_es"], it["summary_es"], ok = title, summary, False
+        it["translated"] = ok            # (unused for EN-origin badges, kept for symmetry)
     return it
 
 
@@ -561,6 +574,14 @@ def main():
 
     counts = ", ".join(f"{k}:{len(v)}" for k, v in buckets.items())
     print(f"✅ Built site/index.html  ({counts}, events:{len(events)})")
+
+    # Loud signal if translation is degraded: any failures mean some cards fell
+    # back to untranslated Spanish. If EVERYTHING failed, the engine/key is
+    # broken and needs attention (check the DEEPL_API_KEY secret / engine).
+    if T.fail_count:
+        print(f"⚠ TRANSLATION DEGRADED: {T.fail_count} text(s) could not be "
+              f"translated this run and were shown in the original language. "
+              f"Check the translation engine (DEEPL_API_KEY secret / rate limits).")
 
 
 if __name__ == "__main__":

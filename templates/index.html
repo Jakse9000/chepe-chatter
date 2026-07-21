@@ -178,7 +178,7 @@
       <h3><a href="{{ it.url }}" target="_blank" rel="noopener" data-en="{{ it.title_en }}" data-es="{{ it.title_es }}">{{ it.title_en }}</a></h3>
       <p data-en="{{ it.summary_en }}" data-es="{{ it.summary_es }}">{{ it.summary_en }}</p>
       <div class="foot">
-        <span class="lang-badge" data-en="{{ 'EN original' if it.origin == 'en' else 'Translated from ES' }}" data-es="{{ 'Traducido del inglés' if it.origin == 'en' else 'Original en ES' }}">{{ 'EN original' if it.origin == 'en' else 'Translated from ES' }}</span>
+        <span class="lang-badge" data-en="{{ 'EN original' if it.origin == 'en' else ('Translated from ES' if it.get('translated', True) else 'ES — not translated') }}" data-es="{{ 'Traducido del inglés' if it.origin == 'en' else 'Original en ES' }}">{{ 'EN original' if it.origin == 'en' else ('Translated from ES' if it.get('translated', True) else 'ES — not translated') }}</span>
         <a href="{{ it.url }}" target="_blank" rel="noopener" data-en="Read at source →" data-es="Leer en la fuente →">Read at source →</a>
       </div>
     </article>
@@ -213,7 +213,7 @@
       <h3><a href="{{ it.url }}" target="_blank" rel="noopener" data-en="{{ it.title_en }}" data-es="{{ it.title_es }}">{{ it.title_en }}</a></h3>
       <p data-en="{{ it.summary_en }}" data-es="{{ it.summary_es }}">{{ it.summary_en }}</p>
       <div class="foot">
-        <span class="lang-badge" data-en="{{ 'EN original' if it.origin == 'en' else 'Translated from ES' }}" data-es="{{ 'Traducido del inglés' if it.origin == 'en' else 'Original en ES' }}">{{ 'EN original' if it.origin == 'en' else 'Translated from ES' }}</span>
+        <span class="lang-badge" data-en="{{ 'EN original' if it.origin == 'en' else ('Translated from ES' if it.get('translated', True) else 'ES — not translated') }}" data-es="{{ 'Traducido del inglés' if it.origin == 'en' else 'Original en ES' }}">{{ 'EN original' if it.origin == 'en' else ('Translated from ES' if it.get('translated', True) else 'ES — not translated') }}</span>
         <a href="{{ it.url }}" target="_blank" rel="noopener" data-en="Read at source →" data-es="Leer en la fuente →">Read at source →</a>
       </div>
     </article>

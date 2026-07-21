@@ -97,13 +97,33 @@ def _deepl(text, src, tgt):
     return data["translations"][0]["text"]
 
 
-def _engine(src, tgt):
-    """Return a translate(text)->text callable for the best available engine."""
+def _engines(src, tgt):
+    """
+    Ordered list of (name, translate_callable) backends to try in turn.
+
+    DeepL goes first when a key is present (best quality). The FREE Google and
+    MyMemory backends always follow as fallbacks, so a broken, expired or
+    quota-exhausted DeepL key — or an engine that is temporarily blocked from
+    the build server's IP — no longer leaves every headline in Spanish.
+    """
+    engines = []
     if os.environ.get("DEEPL_API_KEY"):
-        return lambda text: _deepl(text, src, tgt)
-    from deep_translator import GoogleTranslator
-    tr = GoogleTranslator(source=src, target=tgt)
-    return tr.translate
+        engines.append(("deepl", lambda text: _deepl(text, src, tgt)))
+    try:
+        from deep_translator import GoogleTranslator
+        engines.append(("google", GoogleTranslator(source=src, target=tgt).translate))
+    except Exception:
+        pass
+    try:
+        # MyMemory runs on different infrastructure, so it often still works
+        # when Google is rate-limited/blocked from a data-centre IP.
+        from deep_translator import MyMemoryTranslator
+        _MM = {"es": "es-ES", "en": "en-US", "pt": "pt-PT"}
+        mm = MyMemoryTranslator(source=_MM.get(src, src), target=_MM.get(tgt, tgt))
+        engines.append(("mymemory", mm.translate))
+    except Exception:
+        pass
+    return engines
 
 
 def translate(text, src, tgt):
@@ -112,17 +132,36 @@ def translate(text, src, tgt):
     Returns the translated string, or the ORIGINAL text if translation
     fails for any reason (so the site always builds).
     """
+    return translate_flagged(text, src, tgt)[0]
+
+
+# How many items fell back to the untranslated original this run. build.py
+# reads this at the end so a broken engine shows up loudly in the CI log.
+fail_count = 0
+
+
+def translate_flagged(text, src, tgt):
+    """
+    Like translate(), but returns a (text, ok) tuple.
+
+    `ok` is True when the returned text is genuinely in the target language
+    (a real translation, a cache hit, or nothing-to-do), and False when every
+    engine failed and we fell back to the ORIGINAL untranslated text. Callers
+    use this to label a card honestly instead of always claiming "Translated".
+    """
+    global fail_count
     text = (text or "").strip()
     if not text or src == tgt:
-        return text
+        return text, True
 
     ck = _key(text, src, tgt)
     if ck in _cache:
         _cache[ck][1] = _TODAY               # mark as recently used
-        return _cache[ck][0]
+        return _cache[ck][0], True
 
     # Try up to 3 times — DeepL's free tier rate-limits bursts with a 429,
-    # which a short backoff usually clears.
+    # which a short backoff usually clears. Each attempt walks the whole
+    # engine fallback chain, so DeepL failing hands off to Google/MyMemory.
     last_err = None
     for attempt in range(3):
         try:
@@ -131,20 +170,40 @@ def translate(text, src, tgt):
                 _cache[ck] = [out, _TODAY]   # cache ONLY successful translations
                 if len(_cache) % 10 == 0:
                     _save_cache()
-                return out
+                return out, True
         except Exception as e:
             last_err = e
         time.sleep(1.0 * (attempt + 1))   # 1s, 2s backoff
 
     # IMPORTANT: on failure we return the original but DO NOT cache it, so the
     # next build retries instead of permanently storing untranslated text.
+    fail_count += 1
     print(f"   ⚠ translation failed ({src}->{tgt}), keeping original this run: {last_err}")
-    return text
+    return text, False
 
 
 def _do_translate(text, src, tgt):
-    """One translation attempt. Long text is chunked on sentence breaks."""
-    fn = _engine(src, tgt)
+    """One translation pass. Walks the engine fallback chain until one returns
+    a result; long text is chunked on sentence breaks. Raises only if EVERY
+    engine failed, so the caller can retry/back off."""
+    engines = _engines(src, tgt)
+    if not engines:
+        raise RuntimeError("no translation engine available")
+    last_err = None
+    for name, fn in engines:
+        try:
+            out = _translate_with(fn, text)
+            if out:
+                return out
+        except Exception as e:
+            last_err = e            # try the next engine in the chain
+    if last_err:
+        raise last_err
+    return ""
+
+
+def _translate_with(fn, text):
+    """Run one engine callable, chunking text longer than the API limit."""
     if len(text) <= 4500:
         out = fn(text)
     else:
